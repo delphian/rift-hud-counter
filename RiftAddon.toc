@@ -1,0 +1,27 @@
+Identifier = "AOMCounter"
+ 
+Name = "AOM Counter"
+ 
+Description = "Currency and experience counter"
+ 
+Author = "Bryan Hazelbaker"
+ 
+Version = "1"
+ 
+Email = "bryan.hazelbaker@gmail.com"
+ 
+Environment = "1.9"
+
+Embed = {
+  AOMRift = true,
+}
+
+Dependencies = {
+  AOMRift = {"required", "before"},
+}
+ 
+RunOnStartup = {
+  "AOMMain.lua",
+  "AOMMath.lua",
+  "AOMCounter.lua",
+}
