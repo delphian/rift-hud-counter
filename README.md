@@ -13,7 +13,7 @@ First locate Rift's addon directory:
 2. Click on the "Addons" button.
 3. Click on the "Open Addons Directory" button.
 
-Open a command prompt and navigate to this directory. Then issue the commands:
+Issue following commands in Rift's addon directory:
 -----
 
     git clone
@@ -22,4 +22,4 @@ Open a command prompt and navigate to this directory. Then issue the commands:
     git submodule update
 
 Now restart Rift, refresh the addons and enable the AOMCounter. You may need to restart
-Rift one additional time after this.
+Rift one more time.
