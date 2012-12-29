@@ -4,19 +4,21 @@
 -- http://wiki.riftui.com/Main_Page
 
 -- Window class.
-AOMWindow = AOMRift.UI:window("title", 300, 290)
+AOMWindow = {
+  window = nil
+}
 function AOMWindow:Init()
-  function self.frame.Event:LeftClick()
+  function self.window.frame.Event:LeftClick()
      print("Got it!")
   end
-  self.currencyName = UI.CreateFrame("Text", "Currency", self.frame) 
-  self.currencyName:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 2, 2)
+  self.currencyName = UI.CreateFrame("Text", "Currency", self.window.frame) 
+  self.currencyName:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 2, 2)
   self.currencyName:SetVisible(true)
-  self.currencyTotal = UI.CreateFrame("Text", "Total", self.frame) 
-  self.currencyTotal:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 150, 2)
+  self.currencyTotal = UI.CreateFrame("Text", "Total", self.window.frame) 
+  self.currencyTotal:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 150, 2)
   self.currencyTotal:SetVisible(true)
-  self.currencyChange = UI.CreateFrame("Text", "Change", self.frame) 
-  self.currencyChange:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 215, 2)
+  self.currencyChange = UI.CreateFrame("Text", "Change", self.window.frame) 
+  self.currencyChange:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 215, 2)
   self.currencyChange:SetVisible(true)
 end
 
@@ -83,7 +85,7 @@ function AOMCounter.Coin:Silver(amount)
 end
 -- Get the percent of coin compared to total carried coin.
 function AOMCounter.Coin:Percent(amount)
-  local percent = AOM.Math:round((amount / self.carried) * 100, 2)
+  local percent = AOMMath:round((amount / self.carried) * 100, 2)
   return percent
 end
 
@@ -114,23 +116,23 @@ function AOMCounter.Event.Attunement()
     AOMCounter.Attunement = Inspect.Attunement.Progress()
     change = 0
   end
-  AOMCounter.Attunement.pctTotal = AOM.Math:round(percent, 1)
-  AOMCounter.Attunement.pctChange = AOM.Math:round(change, 1)
+  AOMCounter.Attunement.pctTotal = AOMMath:round(percent, 1)
+  AOMCounter.Attunement.pctChange = AOMMath:round(change, 1)
   AOMCounter:PrintCurrency()
 end
 -- Callback for Event.Experience.Accumulated
 -- Update our experience counter when user has received more experience.
 function AOMCounter.Event.Experience()
   local experience = Inspect.Experience()
-  local percent = AOM.Math:round((experience.accumulated / experience.needed) * 100, 1)
-  local change = percent - AOM.Math:round((AOMCounter.Experience.accumulated / AOMCounter.Experience.needed) * 100, 1)
+  local percent = (experience.accumulated / experience.needed) * 100
+  local change = percent - ((AOMCounter.Experience.accumulated / AOMCounter.Experience.needed) * 100)
   -- If change percent is negative then we just gained a lavel. Reset counter.
   if change < 0 then
     AOMCounter.Experience = Inspect.Experience()
     change = 0
   end
-  AOMCounter.Experience.pctTotal = AOM.Math:round(percent, 1)
-  AOMCounter.Experience.pctChange = AOM.Math:round(change, 1)
+  AOMCounter.Experience.pctTotal = AOMMath:round(percent, 1)
+  AOMCounter.Experience.pctChange = AOMMath:round(change, 1)
   AOMCounter:PrintCurrency()
 end
 -- Callback for Event.Addon.Load.End
@@ -140,7 +142,6 @@ function AOMCounter.Event.Init(param)
   -- loaded. Make sure to only execute code if the plugin being loaded
   -- is ours.
   if param == "AOMCounter" then
-    AOMWindow:Init()
     AOMCounter.Currencies = Inspect.Currency.List()
     AOMCounter.Attunement = Inspect.Attunement.Progress()
     AOMCounter.Attunement.pctTotal = "0.0"
@@ -148,6 +149,15 @@ function AOMCounter.Event.Init(param)
     AOMCounter.Experience = Inspect.Experience()
     AOMCounter.Experience.pctTotal = "0.0"
     AOMCounter.Experience.pctChange = "0.0"
+    -- Calculate how tall a window we need. All our currencies will take up
+    -- one line each, plus the experiecen and pa experience lines. Then less
+    -- one line because that will be included in the constant.
+    local lines = AOMMath:count(AOMCounter.Currencies) + 1
+    -- Define a constant that will be the minimum size of a window that has
+    -- just one line.
+    local minimum = 30
+    AOMWindow.window = AOMRift.UI:window("title", 300, (16 * lines) + minimum)
+    AOMWindow:Init()
     AOMCounter:PrintCurrency()
     print "AOM Counter loaded."  
   end
