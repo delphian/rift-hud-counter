@@ -4,7 +4,7 @@
 -- http://wiki.riftui.com/Main_Page
 
 -- Window class.
-AOMWindow = AOMRift.UI:window("title", 300, 280)
+AOMWindow = AOMRift.UI:window("title", 300, 290)
 function AOMWindow:Init()
   function self.frame.Event:LeftClick()
      print("Got it!")
@@ -35,7 +35,7 @@ function AOMCounter:PrintCurrency()
   local percent = 0
   local change = 0
   -- Currency.
-  currencies = Inspect.Currency.List()
+  local currencies = Inspect.Currency.List()
   for k,v in pairs(currencies) do
     detail = Inspect.Currency.Detail(k);
     change = v - AOMCounter.Currencies[k]
@@ -44,13 +44,14 @@ function AOMCounter:PrintCurrency()
     textTotal = textTotal .. v .. "\n"
   end
   -- Attunement.
-  attunement = Inspect.Attunement.Progress()
-  change = attunement.accumulated - AOMCounter.Attunement.accumulated
+  local attunement = Inspect.Attunement.Progress()
+  percent = AOM.Math:round((attunement.accumulated / attunement.needed) * 100, 1)  
+  change = percent - AOM.Math:round((AOMCounter.Attunement.accumulated / AOMCounter.Attunement.needed) * 100, 1)
   textName = textName .. "PA Experience" .. "\n"
-  textChange = textChange .. change .. "\n"
-  textTotal = textTotal .. attunement.accumulated .. "\n"
+  textChange = textChange .. change .. "%\n"
+  textTotal = textTotal .. percent .. "%\n"
   -- Experience
-  experience = Inspect.Experience()
+  local experience = Inspect.Experience()
   percent = AOM.Math:round((experience.accumulated / experience.needed) * 100, 1)
   change = percent - AOM.Math:round((AOMCounter.Experience.accumulated / AOMCounter.Experience.needed) * 100, 1)
   textName = textName .. "Experience" .. "\n"
