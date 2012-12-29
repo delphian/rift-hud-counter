@@ -4,7 +4,7 @@
 -- http://wiki.riftui.com/Main_Page
 
 -- Window class.
-AOMWindow = AOMRift.UI:window("title", 290, 260)
+AOMWindow = AOMRift.UI:window("title", 300, 280)
 function AOMWindow:Init()
   function self.frame.Event:LeftClick()
      print("Got it!")
@@ -29,6 +29,7 @@ AOMCounter = {
 }
 -- Update the Currency textbox.
 function AOMCounter:PrintCurrency()
+  -- Currency.
   currencies = Inspect.Currency.List()
   local textName = ""
   local textChange = ""
@@ -40,6 +41,18 @@ function AOMCounter:PrintCurrency()
     textChange = textChange .. change .. "\n" 
     textTotal = textTotal .. v .. "\n"
   end
+  -- Attunement.
+  attunement = Inspect.Attunement.Progress()
+  change = attunement.accumulated - AOMCounter.Attunement.accumulated
+  textName = textName .. "PA Experience" .. "\n"
+  textChange = textChange .. change .. "\n"
+  textTotal = textTotal .. attunement.accumulated .. "\n"
+  -- Experience
+  experience = Inspect.Experience()
+  change = experience.accumulated - AOMCounter.Experience.accumulated
+  textName = textName .. "Experience" .. "\n"
+  textChange = textChange .. change .. "\n"
+  textTotal = textTotal .. experience.accumulated .. "\n"
   AOMWindow.currencyName:SetText(textName)
   AOMWindow.currencyTotal:SetText(textTotal)
   AOMWindow.currencyChange:SetText(textChange)
@@ -92,7 +105,12 @@ end
 function AOMCounter.Event.Currency(currencies)
   AOMCounter:PrintCurrency()
 end
--- Ccallback for Event.Addon.Load.End
+-- Callback for Event.Attunement.Progress.Accumulated
+-- Update our attunment counter when user has recieved more attunement experience.
+function AOMCounter.Event.Attunement()
+  AOMCounter:PrintCurrency()
+end
+-- Callback for Event.Addon.Load.End
 -- Initialize variables after plugin has been loaded.
 function AOMCounter.Event.Init(param)
   -- This callback actually will get fired each time *any* plugin gets
@@ -101,7 +119,11 @@ function AOMCounter.Event.Init(param)
   if param == "AOMCounter" then
     AOMWindow:Init()
     AOMCounter.Currencies = Inspect.Currency.List()
-    AOMCounter:PrintCurrency()    
+    AOMCounter.Attunement = Inspect.Attunement.Progress()
+    AOMCounter.Experience = Inspect.Experience()
+    dump(AOMCounter.Experience)
+    AOMCounter:PrintCurrency()
+    print "AOM Counter loaded."  
   end
 end
 
@@ -109,3 +131,6 @@ end
 table.insert(Event.Addon.Load.End, {AOMCounter.Event.Init, "AOMCounter", "Initital Setup"})
 table.insert(Command.Slash.Register("aom"), {AOMCounter.Event.SlashHandler, "AOMCounter", "Slash Command"})
 table.insert(Event.Currency, {AOMCounter.Event.Currency, "AOMCounter", "Handle Currency Change"})
+table.insert(Event.Attunement.Progress.Accumulated, {AOMCounter.Event.Attunement, "AOMCounter", "Handle Attunement Change"})
+table.insert(Event.Experience.Progress.Accumulated, {AOMCounter.Event.Attunement, "AOMCounter", "Handle Experience Change"})
+ 
