@@ -48,12 +48,9 @@ function AOMCounter:PrintCurrency()
   textChange = textChange .. AOMCounter.Attunement.pctChange .. "%\n"
   textTotal = textTotal .. AOMCounter.Attunement.pctTotal .. "%\n"
   -- Experience
-  local experience = Inspect.Experience()
-  percent = AOM.Math:round((experience.accumulated / experience.needed) * 100, 1)
-  change = percent - AOM.Math:round((AOMCounter.Experience.accumulated / AOMCounter.Experience.needed) * 100, 1)
   textName = textName .. "Experience" .. "\n"
-  textChange = textChange .. change .. "%\n"
-  textTotal = textTotal .. percent .. "%\n"
+  textChange = textChange .. AOMCounter.Experience.pctChange .. "%\n"
+  textTotal = textTotal .. AOMCounter.Experience.pctTotal .. "%\n"
   AOMWindow.currencyName:SetText(textName)
   AOMWindow.currencyTotal:SetText(textTotal)
   AOMWindow.currencyChange:SetText(textChange)
@@ -124,6 +121,16 @@ end
 -- Callback for Event.Experience.Accumulated
 -- Update our experience counter when user has received more experience.
 function AOMCounter.Event.Experience()
+  local experience = Inspect.Experience()
+  local percent = AOM.Math:round((experience.accumulated / experience.needed) * 100, 1)
+  local change = percent - AOM.Math:round((AOMCounter.Experience.accumulated / AOMCounter.Experience.needed) * 100, 1)
+  -- If change percent is negative then we just gained a lavel. Reset counter.
+  if change < 0 then
+    AOMCounter.Experience = Inspect.Experience()
+    change = 0
+  end
+  AOMCounter.Experience.pctTotal = AOM.Math:round(percent, 1)
+  AOMCounter.Experience.pctChange = AOM.Math:round(change, 1)
   AOMCounter:PrintCurrency()
 end
 -- Callback for Event.Addon.Load.End
@@ -139,7 +146,8 @@ function AOMCounter.Event.Init(param)
     AOMCounter.Attunement.pctTotal = "0.0"
     AOMCounter.Attunement.pctChange = "0.0"
     AOMCounter.Experience = Inspect.Experience()
-    dump(AOMCounter.Experience)
+    AOMCounter.Experience.pctTotal = "0.0"
+    AOMCounter.Experience.pctChange = "0.0"
     AOMCounter:PrintCurrency()
     print "AOM Counter loaded."  
   end
