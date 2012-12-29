@@ -29,11 +29,13 @@ AOMCounter = {
 }
 -- Update the Currency textbox.
 function AOMCounter:PrintCurrency()
-  -- Currency.
-  currencies = Inspect.Currency.List()
   local textName = ""
   local textChange = ""
   local textTotal = ""
+  local percent = 0
+  local change = 0
+  -- Currency.
+  currencies = Inspect.Currency.List()
   for k,v in pairs(currencies) do
     detail = Inspect.Currency.Detail(k);
     change = v - AOMCounter.Currencies[k]
@@ -49,10 +51,11 @@ function AOMCounter:PrintCurrency()
   textTotal = textTotal .. attunement.accumulated .. "\n"
   -- Experience
   experience = Inspect.Experience()
-  change = experience.accumulated - AOMCounter.Experience.accumulated
+  percent = AOM.Math:round((experience.accumulated / experience.needed) * 100, 1)
+  change = percent - AOM.Math:round((AOMCounter.Experience.accumulated / AOMCounter.Experience.needed) * 100, 1)
   textName = textName .. "Experience" .. "\n"
-  textChange = textChange .. change .. "\n"
-  textTotal = textTotal .. experience.accumulated .. "\n"
+  textChange = textChange .. change .. "%\n"
+  textTotal = textTotal .. percent .. "%\n"
   AOMWindow.currencyName:SetText(textName)
   AOMWindow.currencyTotal:SetText(textTotal)
   AOMWindow.currencyChange:SetText(textChange)
@@ -132,5 +135,5 @@ table.insert(Event.Addon.Load.End, {AOMCounter.Event.Init, "AOMCounter", "Initit
 table.insert(Command.Slash.Register("aom"), {AOMCounter.Event.SlashHandler, "AOMCounter", "Slash Command"})
 table.insert(Event.Currency, {AOMCounter.Event.Currency, "AOMCounter", "Handle Currency Change"})
 table.insert(Event.Attunement.Progress.Accumulated, {AOMCounter.Event.Attunement, "AOMCounter", "Handle Attunement Change"})
-table.insert(Event.Experience.Progress.Accumulated, {AOMCounter.Event.Attunement, "AOMCounter", "Handle Experience Change"})
+table.insert(Event.Experience.Accumulated, {AOMCounter.Event.Attunement, "AOMCounter", "Handle Experience Change"})
  
