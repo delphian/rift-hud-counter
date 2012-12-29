@@ -8,7 +8,10 @@ end
 
 -- Count the number of entries in a table.
 function AOMMath:count(table)
+  assert(type(table) == "table", "Expected a table")
   local count = 0
-  for _ in pairs(table) do count = count + 1 end
+  if type(table) == "table" then
+    for _ in pairs(table) do count = count + 1 end
+  end
   return count
 end

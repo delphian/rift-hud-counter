@@ -3,170 +3,182 @@
 -- http://www.seebs.net/rift/live/index.html
 -- http://wiki.riftui.com/Main_Page
 
--- Window class.
-AOMWindow = {
-  window = nil
+-- Main class.
+AOMCounter = {
+  UI = {
+    lines = nil,
+    window = nil,
+    text = {},
+  },
+  Event = {},
+  Currency = {
+    last = nil,
+  },
+  Attunement = {
+    last = nil,
+    pctTotal = 0,
+    pctChange = 0,
+  },
+  Experience = {
+    last = nil,
+    pctTotal = 0,
+    pctChange = 0,
+  },
 }
-function AOMWindow:Init()
+
+-- Update or initialize experience change.
+-- @see AOMCounter.Event.Experience()
+function AOMCounter.Experience:update()
+  if self.last == nil then
+    print "Got Nil!"
+    self.last = Inspect.Experience()
+  end
+  local experience = Inspect.Experience()
+  local percent = (experience.accumulated / experience.needed) * 100
+  local change = percent - ((self.last.accumulated / self.last.needed) * 100)
+  -- If change percent is negative then we just gained a lavel. Reset counter.
+  if change < 0 then
+    self.last = Inspect.Experience()
+    change = 0
+  end
+  self.pctTotal = AOMMath:round(percent, 1)
+  self.pctChange = AOMMath:round(change, 1)
+end
+-- Callback for Event.Experience.
+function AOMCounter.Event.Experience()
+  AOMCounter.Experience:update()
+  AOMCounter:update()
+end
+-- Update or initialize currency change.
+-- @see AOMCounter.Event.Currency()
+function AOMCounter.Currency:update()
+  if self.last == nil then
+    self.last = Inspect.Currency.List() 
+  end
+end
+-- Callback for Event.Currency
+function AOMCounter.Event.Currency(currencies)
+  AOMCounter.Currency:update()
+  AOMCounter:update()
+end
+
+-- Initialize the graphic window.
+function AOMCounter.UI:init()
+  -- Calculate how tall a window we need. All our currencies will take up
+  -- one line each, plus the experiecen and pa experience lines. Then less
+  -- one line because that will be included in the constant.
+  self.lines = AOMMath:count(Inspect.Currency.List()) + 1
+  -- Define a constant that will be the minimum size of a window that has
+  -- just one line.
+  local minimum = 30
+  self.window = AOMRift.UI:window("title", 300, (16 * self.lines) + minimum)
   function self.window.frame.Event:LeftClick()
      print("Got it!")
   end
-  self.currencyName = UI.CreateFrame("Text", "Currency", self.window.frame) 
-  self.currencyName:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 2, 2)
-  self.currencyName:SetVisible(true)
-  self.currencyTotal = UI.CreateFrame("Text", "Total", self.window.frame) 
-  self.currencyTotal:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 150, 2)
-  self.currencyTotal:SetVisible(true)
-  self.currencyChange = UI.CreateFrame("Text", "Change", self.window.frame) 
-  self.currencyChange:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 215, 2)
-  self.currencyChange:SetVisible(true)
+  self.text.name = UI.CreateFrame("Text", "Currency", self.window.frame) 
+  self.text.name:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 2, 2)
+  self.text.name:SetVisible(true)
+  self.text.total = UI.CreateFrame("Text", "Total", self.window.frame) 
+  self.text.total:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 150, 2)
+  self.text.total:SetVisible(true)
+  self.text.change = UI.CreateFrame("Text", "Change", self.window.frame) 
+  self.text.change:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 215, 2)
+  self.text.change:SetVisible(true)
 end
 
--- Main class.
-AOMCounter = {
-  Coin = {},
-  -- Callbacks for all registered events.
-  Event = {},
-  Currencies = {},
-}
--- Update the Currency textbox.
-function AOMCounter:PrintCurrency()
-  local textName = ""
-  local textChange = ""
-  local textTotal = ""
+-- Initialize AOMCounter.
+function AOMCounter:init()
+  -- Calculate percents and totals to display.
+  self.Currency:update()
+  self.Experience:update()
+  -- Initialize window.
+  self.UI:init()
+  -- Register callbacks.
+  table.insert(Event.Experience.Accumulated, {self.Event.Experience, "AOMCounter", "Handle Experience Change"})
+  table.insert(Event.Currency, {self.Event.Currency, "AOMCounter", "Handle Currency Change"})
+  print "AOM Counter loaded."  
+end
+
+-- Update the window.
+function AOMCounter:update()
+  local tName = ""
+  local tTotal = ""
+  local tChange = ""
   local percent = 0
   local change = 0
   -- Currency.
   local currencies = Inspect.Currency.List()
   for k,v in pairs(currencies) do
     detail = Inspect.Currency.Detail(k);
-    change = v - AOMCounter.Currencies[k]
-    textName = textName .. detail.name .. "\n"
-    textChange = textChange .. change .. "\n" 
-    textTotal = textTotal .. v .. "\n"
+    change = v - self.Currency.last[k]
+    tName = tName .. detail.name .. "\n"
+    tChange = tChange .. change .. "\n" 
+    tTotal = tTotal .. v .. "\n"
   end
   -- Attunement.
-  textName = textName .. "PA Experience" .. "\n"
-  textChange = textChange .. AOMCounter.Attunement.pctChange .. "%\n"
-  textTotal = textTotal .. AOMCounter.Attunement.pctTotal .. "%\n"
+  tName = tName .. "PA Experience" .. "\n"
+  tChange = tChange .. self.Attunement.pctChange .. "%\n"
+  tTotal = tTotal .. self.Attunement.pctTotal .. "%\n"
   -- Experience
-  textName = textName .. "Experience" .. "\n"
-  textChange = textChange .. AOMCounter.Experience.pctChange .. "%\n"
-  textTotal = textTotal .. AOMCounter.Experience.pctTotal .. "%\n"
-  AOMWindow.currencyName:SetText(textName)
-  AOMWindow.currencyTotal:SetText(textTotal)
-  AOMWindow.currencyChange:SetText(textChange)
-end
--- Get the platinum portion of gathered coin.
-function AOMCounter.Coin:Platinum(amount)
-  platinum = 0;
-  if amount > 9999 then
-    platinum = math.modf(amount / 10000);
-    platinum = platinum % 100;
-  end
-  return platinum;
-end
--- Get the gold portion of gathered coin.
-function AOMCounter.Coin:Gold(amount)
-  gold = 0;
-  if amount > 99 then
-    gold = math.modf(amount / 100);
-    gold = gold % 100;
-  end
-  return gold;
-end
--- Get the silver portion of gathered coin.
-function AOMCounter.Coin:Silver(amount)
-  silver = 0
-  if (amount > 0) then
-    silver = amount % 100;
-  end
-  return silver;
-end
--- Get the percent of coin compared to total carried coin.
-function AOMCounter.Coin:Percent(amount)
-  local percent = AOMMath:round((amount / self.carried) * 100, 2)
-  return percent
+  tName = tName .. "Experience" .. "\n"
+  tChange = tChange .. self.Experience.pctChange .. "%\n"
+  tTotal = tTotal .. self.Experience.pctTotal .. "%\n"
+  -- Update the actual window with the new text.
+  self.UI.text.name:SetText(tName)
+  self.UI.text.total:SetText(tTotal)
+  self.UI.text.change:SetText(tChange)
 end
 
 -- Callback for Command.Slash.Register
 -- Process slash commands from the chat command line.
 function AOMCounter.Event.SlashHandler(params)
-  if params == "" then
-    AOMCounter:PrintCurrency()
+  if params == "init" then
+    AOMCounter:init()
+    AOMCounter:update()
   end
   if params == "reset" then
     AOMCounter.Currencies = Inspect.Currency.List()
     AOMCounter:PrintCurrency()
   end
 end
--- Callback for Event.Currency
--- Update our currency counter when user has picked up more coin.
-function AOMCounter.Event.Currency(currencies)
-  AOMCounter:PrintCurrency()
-end
+
+
 -- Callback for Event.Attunement.Progress.Accumulated
 -- Update our attunment counter when user has recieved more attunement experience.
 function AOMCounter.Event.Attunement()
   local attunement = Inspect.Attunement.Progress()
-  local percent = (attunement.accumulated / attunement.needed) * 100  
-  local change = percent - ((AOMCounter.Attunement.accumulated / AOMCounter.Attunement.needed) * 100)
+  local percent = (attunement.accumulated / attunement.needed) * 100
+  local change = percent - ((AOMCounter.Attunement.last.accumulated / AOMCounter.Attunement.last.needed) * 100)
   -- If change percent is negative then we just gained a level. Reset counter.
   if change < 0 then
-    AOMCounter.Attunement = Inspect.Attunement.Progress()
+    AOMCounter.Attunement.last = Inspect.Attunement.Progress()
     change = 0
   end
   AOMCounter.Attunement.pctTotal = AOMMath:round(percent, 1)
   AOMCounter.Attunement.pctChange = AOMMath:round(change, 1)
-  AOMCounter:PrintCurrency()
+  AOMCounter:update()
 end
--- Callback for Event.Experience.Accumulated
--- Update our experience counter when user has received more experience.
-function AOMCounter.Event.Experience()
-  local experience = Inspect.Experience()
-  local percent = (experience.accumulated / experience.needed) * 100
-  local change = percent - ((AOMCounter.Experience.accumulated / AOMCounter.Experience.needed) * 100)
-  -- If change percent is negative then we just gained a lavel. Reset counter.
-  if change < 0 then
-    AOMCounter.Experience = Inspect.Experience()
-    change = 0
-  end
-  AOMCounter.Experience.pctTotal = AOMMath:round(percent, 1)
-  AOMCounter.Experience.pctChange = AOMMath:round(change, 1)
-  AOMCounter:PrintCurrency()
+-- Callback for Event.Achievement.Update
+-- @todo This is just for testing and outputing what has changed. It
+-- Eventually should be its own addon (maybe).
+function AOMCounter.Event.Achievement(achievements)
+  dump(achievements)
 end
--- Callback for Event.Addon.Load.End
+
+-- Callback for Event.Addon.Startup.End
 -- Initialize variables after plugin has been loaded.
 function AOMCounter.Event.Init(param)
   -- This callback actually will get fired each time *any* plugin gets
   -- loaded. Make sure to only execute code if the plugin being loaded
   -- is ours.
   if param == "AOMCounter" then
-    AOMCounter.Currencies = Inspect.Currency.List()
-    AOMCounter.Attunement = Inspect.Attunement.Progress()
-    AOMCounter.Attunement.pctTotal = "0.0"
-    AOMCounter.Attunement.pctChange = "0.0"
-    AOMCounter.Experience = Inspect.Experience()
-    AOMCounter.Experience.pctTotal = "0.0"
-    AOMCounter.Experience.pctChange = "0.0"
-    -- Calculate how tall a window we need. All our currencies will take up
-    -- one line each, plus the experiecen and pa experience lines. Then less
-    -- one line because that will be included in the constant.
-    local lines = AOMMath:count(AOMCounter.Currencies) + 1
-    -- Define a constant that will be the minimum size of a window that has
-    -- just one line.
-    local minimum = 30
-    AOMWindow.window = AOMRift.UI:window("title", 300, (16 * lines) + minimum)
-    AOMWindow:Init()
-    AOMCounter:PrintCurrency()
-    print "AOM Counter loaded."  
   end
 end
 
-
-table.insert(Event.Addon.Load.End, {AOMCounter.Event.Init, "AOMCounter", "Initital Setup"})
+-- Register callbacks.
+--table.insert(Event.Addon.Load.End, {AOMCounter.Event.Init, "AOMCounter", "Initital Setup"})
 table.insert(Command.Slash.Register("aom"), {AOMCounter.Event.SlashHandler, "AOMCounter", "Slash Command"})
-table.insert(Event.Currency, {AOMCounter.Event.Currency, "AOMCounter", "Handle Currency Change"})
-table.insert(Event.Attunement.Progress.Accumulated, {AOMCounter.Event.Attunement, "AOMCounter", "Handle Attunement Change"})
-table.insert(Event.Experience.Accumulated, {AOMCounter.Event.Experience, "AOMCounter", "Handle Experience Change"})
- 
+--table.insert(Event.Attunement.Progress.Accumulated, {AOMCounter.Event.Attunement, "AOMCounter", "Handle Attunement Change"})
+--table.insert(Event.Experience.Accumulated, {AOMCounter.Event.Experience, "AOMCounter", "Handle Experience Change"})
+
+--table.insert(Event.Achievement.Update, {AOMCounter.Event.Achievement, "AOMCounter", "Handle Achievement Change"}) 
