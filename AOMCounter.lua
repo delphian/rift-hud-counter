@@ -44,12 +44,9 @@ function AOMCounter:PrintCurrency()
     textTotal = textTotal .. v .. "\n"
   end
   -- Attunement.
-  local attunement = Inspect.Attunement.Progress()
-  percent = AOM.Math:round((attunement.accumulated / attunement.needed) * 100, 1)  
-  change = percent - AOM.Math:round((AOMCounter.Attunement.accumulated / AOMCounter.Attunement.needed) * 100, 1)
   textName = textName .. "PA Experience" .. "\n"
-  textChange = textChange .. change .. "%\n"
-  textTotal = textTotal .. percent .. "%\n"
+  textChange = textChange .. AOMCounter.Attunement.pctChange .. "%\n"
+  textTotal = textTotal .. AOMCounter.Attunement.pctTotal .. "%\n"
   -- Experience
   local experience = Inspect.Experience()
   percent = AOM.Math:round((experience.accumulated / experience.needed) * 100, 1)
@@ -112,6 +109,21 @@ end
 -- Callback for Event.Attunement.Progress.Accumulated
 -- Update our attunment counter when user has recieved more attunement experience.
 function AOMCounter.Event.Attunement()
+  local attunement = Inspect.Attunement.Progress()
+  local percent = (attunement.accumulated / attunement.needed) * 100  
+  local change = percent - ((AOMCounter.Attunement.accumulated / AOMCounter.Attunement.needed) * 100)
+  -- If change percent is negative then we just gained a level. Reset counter.
+  if change < 0 then
+    AOMCounter.Attunement = Inspect.Attunement.Progress()
+    change = 0
+  end
+  AOMCounter.Attunement.pctTotal = AOM.Math:round(percent, 1)
+  AOMCounter.Attunement.pctChange = AOM.Math:round(change, 1)
+  AOMCounter:PrintCurrency()
+end
+-- Callback for Event.Experience.Accumulated
+-- Update our experience counter when user has received more experience.
+function AOMCounter.Event.Experience()
   AOMCounter:PrintCurrency()
 end
 -- Callback for Event.Addon.Load.End
@@ -124,6 +136,8 @@ function AOMCounter.Event.Init(param)
     AOMWindow:Init()
     AOMCounter.Currencies = Inspect.Currency.List()
     AOMCounter.Attunement = Inspect.Attunement.Progress()
+    AOMCounter.Attunement.pctTotal = "0.0"
+    AOMCounter.Attunement.pctChange = "0.0"
     AOMCounter.Experience = Inspect.Experience()
     dump(AOMCounter.Experience)
     AOMCounter:PrintCurrency()
@@ -136,5 +150,5 @@ table.insert(Event.Addon.Load.End, {AOMCounter.Event.Init, "AOMCounter", "Initit
 table.insert(Command.Slash.Register("aom"), {AOMCounter.Event.SlashHandler, "AOMCounter", "Slash Command"})
 table.insert(Event.Currency, {AOMCounter.Event.Currency, "AOMCounter", "Handle Currency Change"})
 table.insert(Event.Attunement.Progress.Accumulated, {AOMCounter.Event.Attunement, "AOMCounter", "Handle Attunement Change"})
-table.insert(Event.Experience.Accumulated, {AOMCounter.Event.Attunement, "AOMCounter", "Handle Experience Change"})
+table.insert(Event.Experience.Accumulated, {AOMCounter.Event.Experience, "AOMCounter", "Handle Experience Change"})
  
