@@ -195,23 +195,23 @@ function AOMCounter.Event.Achievement(achievements)
     print("========================================")
   end
   for achievement_key, v in pairs(achievements) do
-    local achievement = Inspect.Achievement.Detail(achievement_key)
-    local cat = Inspect.Achievement.Category.Detail(achievement.category)
-    -- Debug output. 
-    if (AOMCounter.Config.Debug.achievements == true) then
-      print("----------------------------------------")
-      print(AOMRift.Achievement.exists(achievement_key))
-      print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
-      if cat ~= nil then
-        print(AOMLua:print_r(cat, "Category Detail " .. achievement.category))
+    local achievement = AOMRift.Achievement:load(achievement_key)
+    if (not achievement.complete) then
+      -- Debug output. 
+      if (AOMCounter.Config.Debug.achievements == true) then
+        print("----------------------------------------")
+        print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
       end
-    end    
-    -- If it is not marked as complete, and provides counts.
-    if achievement.requirement[1]["complete"] == nil 
-    and achievement.requirement[1]["count"] ~= nil 
-    and achievement.requirement[1]["countDone"] ~= nil
-    and AOMMath:count(achievement.requirement) == 1 then
-      print(cat.name .. ": " .. achievement.name .. ": " .. achievement.description .. " (" .. achievement.requirement[1].countDone .. "/" .. achievement.requirement[1].count .. ")")
+      -- Output the achievement information.
+      print(achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description)
+      -- Output the requirements.    
+      for req_key, req_value in ipairs(achievement:get_incomplete()) do
+        req = achievement:get_req(req_key)
+        if (AOMCounter.Config.Debug.achievements == true) then
+          print(AOMLua:print_r(req, "Requirement"))
+        end
+        print("  " .. req.type .. ": " .. req.name .. " (" .. req.done .. "/" .. req.total .. ")")
+      end 
     end
   end
 end
