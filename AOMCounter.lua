@@ -112,6 +112,7 @@ function AOMCounter:init()
   -- Calculate percents and totals to display.
   self.Currency:update()
   self.Experience:update()
+  self.Attunement:update()
   -- Initialize window.
   self.UI:init()
   -- Register callbacks.
