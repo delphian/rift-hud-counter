@@ -32,6 +32,9 @@ Two zip files must be downloaded:
 Extract the first file into the addon directory. Create a subdirectory inside
 AOMCounter named AOMRift and extract the second file into the AOMRift directory.
 
+Enable the addon:
+-----
+
 Now restart Rift, refresh the addons and enable the AOMCounter. You may need to restart
 Rift one more time.
 
@@ -39,7 +42,9 @@ Usage
 =====
 
 Start the addon
+
     /aom init
 
 Reset the counters:
+
     /aom reset
