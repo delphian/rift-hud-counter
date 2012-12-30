@@ -24,6 +24,9 @@ AOMCounter = {
     pctTotal = 0,
     pctChange = 0,
   },
+  Config = {
+    Debug = { achievements = false, }
+  }
 }
 
 -- Update or initialize experience change.
@@ -173,20 +176,40 @@ function AOMCounter.Event.SlashHandler(params)
     AOMCounter:update()
     print "Counters reset."
   end
+  if params == "debug achievements" then
+    if AOMCounter.Config.Debug.achievements == true then
+      AOMCounter.Config.Debug.achievements = false
+      print("Debugging achievements OFF")
+    else
+      AOMCounter.Config.Debug.achievements = true
+      print("Debugging achievements ON")
+    end
+  end
 end
 
 -- Callback for Event.Achievement.Update
 -- @todo This is just for testing and outputing what has changed. It
 -- Eventually should be its own addon (maybe).
 function AOMCounter.Event.Achievement(achievements)
-  for k,v in pairs(achievements) do
-    local detail = Inspect.Achievement.Detail(k)
-    local req = detail.requirement[1]
-    if req["complete"] == nil then
-      if req["count"] ~= nil and req["countDone"] ~= nil then 
-        print(detail.description .. " (" .. req.countDone .. "/" .. req.count .. ")")
+  for achievement_key, v in pairs(achievements) do
+    local achievement = Inspect.Achievement.Detail(achievement_key)
+    local cat = Inspect.Achievement.Category.Detail(achievement.category)
+    -- If it is not marked as complete, but does provide counts.
+    if achievement.requirement[1]["complete"] == nil 
+    and achievement.requirement[1]["count"] ~= nil 
+    and achievement.requirement[1]["countDone"] ~= nil
+    and AOMMath:count(achievement.requirement) == 1 then
+      -- Debug output. 
+      if (AOMCounter.Config.Debug.achievements == true) then
+        print("------------------------------")
+        print(cat.name .. ": " .. achievement.name .. ": " .. achievement.description .. " (" .. achievement.requirement[1].countDone .. "/" .. achievement.requirement[1].count .. ")")
+        print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
+        if cat ~= nil then
+          print(AOMLua:print_r(cat, "Category Detail " .. achievement.category))
+        end
+      -- No debug output.
       else
-        dump(req)
+        print(cat.name .. ": " .. achievement.name .. ": " .. achievement.description .. " (" .. achievement.requirement[1].countDone .. "/" .. achievement.requirement[1].count .. ")")
       end
     end
   end
