@@ -126,6 +126,9 @@ function AOMCounter:reset()
   self.Experience.last = Inspect.Experience()
   self.Attunement.last = Inspect.Attunement.Progress()
   self.Currency.last = Inspect.Currency.List()
+  self.Experience:update()
+  self.Attunement:update()
+  self.Currency:update()
 end
 -- Update the window.
 function AOMCounter:update()
