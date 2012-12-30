@@ -182,7 +182,13 @@ function AOMCounter.Event.Achievement(achievements)
   for k,v in pairs(achievements) do
     local detail = Inspect.Achievement.Detail(k)
     local req = detail.requirement[1]
-    print(detail.description .. " (" .. req.countDone .. "/" .. req.count .. ")")
+    if req["complete"] == nil then
+      if req["count"] ~= nil and req["countDone"] ~= nil then 
+        print(detail.description .. " (" .. req.countDone .. "/" .. req.count .. ")")
+      else
+        dump(req)
+      end
+    end
   end
 end
 
