@@ -3,6 +3,7 @@ AOMCounter
 
 Small window that displays the current amounts of all currencies and experience in Rift.
 
+
 Installation
 ==========
 
@@ -41,10 +42,16 @@ Rift one more time.
 Usage
 =====
 
-Start the addon
+Start the addon:
 
     /aom init
 
 Reset the counters:
 
     /aom reset
+
+Errors
+=====
+
+Please report all errors or installation problems to
+https://github.com/delphian/AOMCounter/issues/new
