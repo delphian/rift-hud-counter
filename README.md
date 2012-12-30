@@ -1,7 +1,8 @@
 AOMCounter
 ==========
 
-Small window that displays the current amounts of all currencies and experience in Rift.
+Small window that displays the current amounts of all currencies and experience in Rift. 
+Any achievements you progress in while playing will be posted in the console chat.
 
 
 Installation
@@ -30,14 +31,19 @@ Two zip files must be downloaded:
 - https://github.com/delphian/AOMCounter/archive/master.zip
 - https://github.com/delphian/AOMRift/archive/master.zip
 
-Extract the first file into the addon directory. Create a subdirectory inside
-AOMCounter named AOMRift and extract the second file into the AOMRift directory.
+Extract the files:
+- Extract the first file into the addon directory. 
+- Rename the created folder to AOMCounter
+- Enter the AOMCounter folder.
+- Delete the AOMRift subfolder.
+- Extract the second file into the AOMCounter folder.
+- Rename the created subfolder to AOMRift
 
 Enable the addon:
 -----
 
-Now restart Rift, refresh the addons and enable the AOMCounter. You may need to restart
-Rift one more time.
+Now restart Rift, refresh the addons and enable the AOMCounter. __You may need to restart
+Rift one more time__.
 
 Usage
 =====
