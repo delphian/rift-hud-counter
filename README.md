@@ -20,8 +20,8 @@ If you use git (the good way):
 
 Issue following commands in Rift's addon directory:
 
-    git clone
-    cd AOMCounter git://github.com/delphian/AOMCounter.git
+    git clone git://github.com/delphian/AOMCounter.git
+    cd AOMCounter
     git submodule init
     git submodule update
 
