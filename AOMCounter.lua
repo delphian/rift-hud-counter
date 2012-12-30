@@ -140,7 +140,7 @@ function AOMCounter:update()
   -- Currency.
   local currencies = Inspect.Currency.List()
   for k,v in pairs(currencies) do
-    detail = Inspect.Currency.Detail(k);
+    detail = Inspect.Currency.Detail(k)
     change = v - self.Currency.last[k]
     tName = tName .. detail.name .. "\n"
     tChange = tChange .. change .. "\n" 
@@ -178,7 +178,11 @@ end
 -- @todo This is just for testing and outputing what has changed. It
 -- Eventually should be its own addon (maybe).
 function AOMCounter.Event.Achievement(achievements)
-  dump(achievements)
+  for k,v in pairs(achievements) do
+    local detail = Inspect.Achievement.Detail(k)
+    local req = detail.requirement[1]
+    print(detail.description .. " (" .. req.countDone .. "/" .. req.count .. ")")
+  end
 end
 
 -- Register callbacks.
