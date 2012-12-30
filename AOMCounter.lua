@@ -30,7 +30,6 @@ AOMCounter = {
 -- @see AOMCounter.Event.Experience()
 function AOMCounter.Experience:update()
   if self.last == nil then
-    print "Got Nil!"
     self.last = Inspect.Experience()
   end
   local experience = Inspect.Experience()
@@ -44,10 +43,22 @@ function AOMCounter.Experience:update()
   self.pctTotal = AOMMath:round(percent, 1)
   self.pctChange = AOMMath:round(change, 1)
 end
--- Callback for Event.Experience.
-function AOMCounter.Event.Experience()
-  AOMCounter.Experience:update()
-  AOMCounter:update()
+-- Update or initialize attunement change.
+-- @see AOMCounter.Event.Attunement()
+function AOMCounter.Attunement:update()
+  if self.last == nil then
+    self.last = Inspect.Attunement.Progress()
+  end
+  local attunement = Inspect.Attunement.Progress()
+  local percent = (attunement.accumulated / attunement.needed) * 100
+  local change = percent - ((self.last.accumulated / self.last.needed) * 100)
+  -- If change percent is negative then we just gained a lavel. Reset counter.
+  if change < 0 then
+    self.last = Inspect.Attunement.Progress()
+    change = 0
+  end
+  self.pctTotal = AOMMath:round(percent, 1)
+  self.pctChange = AOMMath:round(change, 1)
 end
 -- Update or initialize currency change.
 -- @see AOMCounter.Event.Currency()
@@ -55,6 +66,16 @@ function AOMCounter.Currency:update()
   if self.last == nil then
     self.last = Inspect.Currency.List() 
   end
+end
+-- Callback for Event.Experience.
+function AOMCounter.Event.Experience()
+  AOMCounter.Experience:update()
+  AOMCounter:update()
+end
+-- Callback for Event.Experience.
+function AOMCounter.Event.Attunement()
+  AOMCounter.Attunement:update()
+  AOMCounter:update()
 end
 -- Callback for Event.Currency
 function AOMCounter.Event.Currency(currencies)
@@ -96,9 +117,16 @@ function AOMCounter:init()
   -- Register callbacks.
   table.insert(Event.Experience.Accumulated, {self.Event.Experience, "AOMCounter", "Handle Experience Change"})
   table.insert(Event.Currency, {self.Event.Currency, "AOMCounter", "Handle Currency Change"})
+  table.insert(Event.Attunement.Progress.Accumulated, {self.Event.Attunement, "AOMCounter", "Handle Attunement Change"})
   print "AOM Counter loaded."  
 end
 
+-- Reset all the counters.
+function AOMCounter:reset()
+  self.Experience.last = Inspect.Experience()
+  self.Attunement.last = Inspect.Attunement.Progress()
+  self.Currency.last = Inspect.Currency.List()
+end
 -- Update the window.
 function AOMCounter:update()
   local tName = ""
@@ -137,27 +165,12 @@ function AOMCounter.Event.SlashHandler(params)
     AOMCounter:update()
   end
   if params == "reset" then
-    AOMCounter.Currencies = Inspect.Currency.List()
-    AOMCounter:PrintCurrency()
+    AOMCounter:reset()
+    AOMCounter:update()
+    print "Counters reset."
   end
 end
 
-
--- Callback for Event.Attunement.Progress.Accumulated
--- Update our attunment counter when user has recieved more attunement experience.
-function AOMCounter.Event.Attunement()
-  local attunement = Inspect.Attunement.Progress()
-  local percent = (attunement.accumulated / attunement.needed) * 100
-  local change = percent - ((AOMCounter.Attunement.last.accumulated / AOMCounter.Attunement.last.needed) * 100)
-  -- If change percent is negative then we just gained a level. Reset counter.
-  if change < 0 then
-    AOMCounter.Attunement.last = Inspect.Attunement.Progress()
-    change = 0
-  end
-  AOMCounter.Attunement.pctTotal = AOMMath:round(percent, 1)
-  AOMCounter.Attunement.pctChange = AOMMath:round(change, 1)
-  AOMCounter:update()
-end
 -- Callback for Event.Achievement.Update
 -- @todo This is just for testing and outputing what has changed. It
 -- Eventually should be its own addon (maybe).
@@ -165,20 +178,7 @@ function AOMCounter.Event.Achievement(achievements)
   dump(achievements)
 end
 
--- Callback for Event.Addon.Startup.End
--- Initialize variables after plugin has been loaded.
-function AOMCounter.Event.Init(param)
-  -- This callback actually will get fired each time *any* plugin gets
-  -- loaded. Make sure to only execute code if the plugin being loaded
-  -- is ours.
-  if param == "AOMCounter" then
-  end
-end
-
 -- Register callbacks.
---table.insert(Event.Addon.Load.End, {AOMCounter.Event.Init, "AOMCounter", "Initital Setup"})
 table.insert(Command.Slash.Register("aom"), {AOMCounter.Event.SlashHandler, "AOMCounter", "Slash Command"})
---table.insert(Event.Attunement.Progress.Accumulated, {AOMCounter.Event.Attunement, "AOMCounter", "Handle Attunement Change"})
---table.insert(Event.Experience.Accumulated, {AOMCounter.Event.Experience, "AOMCounter", "Handle Experience Change"})
-
---table.insert(Event.Achievement.Update, {AOMCounter.Event.Achievement, "AOMCounter", "Handle Achievement Change"}) 
+table.insert(Event.Achievement.Update, {AOMCounter.Event.Achievement, "AOMCounter", "Handle Achievement Change"})
+ 
