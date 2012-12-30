@@ -196,7 +196,7 @@ function AOMCounter.Event.Achievement(achievements)
   end
   for achievement_key, v in pairs(achievements) do
     local achievement = AOMRift.Achievement:load(achievement_key)
-    if (not achievement.complete) then
+    if (not achievement.complete and achievement.current) then
       -- Debug output. 
       if (AOMCounter.Config.Debug.achievements == true) then
         print("----------------------------------------")
