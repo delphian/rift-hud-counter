@@ -26,10 +26,12 @@ If you use git (the good way):
   look like by examining the path in the folder that was opened when you clicked on the
   `Open Addons Directory` while in Rift.
 
+ 
     cd C:\Users\delphian\Documents\RIFT\Interface\Addons
 
 - Once in the Rift addons directory issue following commands:
 
+ 
     git clone git://github.com/delphian/AOMCounter.git
     cd AOMCounter
     git submodule init
