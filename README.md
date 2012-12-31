@@ -25,17 +25,13 @@ If you use git (the good way):
   replaced with your username on the computer. You can find what this path should really
   look like by examining the path in the folder that was opened when you clicked on the
   `Open Addons Directory` while in Rift.
-
- 
-    cd C:\Users\delphian\Documents\RIFT\Interface\Addons
+  - `cd C:\Users\delphian\Documents\RIFT\Interface\Addons`
 
 - Once in the Rift addons directory issue following commands:
-
- 
-    git clone git://github.com/delphian/AOMCounter.git
-    cd AOMCounter
-    git submodule init
-    git submodule update
+  - `git clone git://github.com/delphian/AOMCounter.git`
+  - `cd AOMCounter`
+  - `git submodule init`
+  - `git submodule update`
 
 Or, download the zip files and extract (the bad way):
 -----
