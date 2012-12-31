@@ -191,12 +191,19 @@ end
 -- Inform the player that they just performed an action that increased their
 -- progress in an achievement.
 function AOMCounter.Event.Achievement(achievements)
+  -- Count each achievement. Limit maximum processed.
+  local maxcount = 0
   if (AOMCounter.Config.Debug.achievements == true) then
     print("========================================")
   end
   for achievement_key, v in pairs(achievements) do
+    -- Place a cap on how many achievements we will do. The rest get ignored, sorry.
+    if (maxcount >= 10) then
+      break;
+    end
+    maxcount = maxcount + 1
     local achievement = AOMRift.Achievement:load(achievement_key)
-    if (not achievement.complete and achievement.current) then
+    if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
       -- Debug output. 
       if (AOMCounter.Config.Debug.achievements == true) then
         print("----------------------------------------")
