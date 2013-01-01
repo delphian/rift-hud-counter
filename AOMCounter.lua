@@ -89,24 +89,20 @@ end
 -- Initialize the graphic window.
 function AOMCounter.UI:init()
   -- Calculate how tall a window we need. All our currencies will take up
-  -- one line each, plus the experiecen and pa experience lines. Then less
-  -- one line because that will be included in the constant.
-  self.lines = AOMMath:count(Inspect.Currency.List()) + 1
-  -- Define a constant that will be the minimum size of a window that has
-  -- just one line.
-  local minimum = 30
-  self.window = AOMRift.UI:window("title", 300, (16 * self.lines) + minimum)
-  function self.window.frame.Event:LeftClick()
-     print("Got it!")
+  -- one line each, plus the experiecen and pa experience lines.
+  self.lines = AOMMath:count(Inspect.Currency.List()) + 2
+  self.window = AOMRift.UI:Window("title", 280, (13 * self.lines))
+  function self.window.content.Event:LeftClick()
+    print("Got it!")
   end
-  self.text.name = UI.CreateFrame("Text", "Currency", self.window.frame) 
-  self.text.name:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 2, 2)
+  self.text.name = UI.CreateFrame("Text", "Currency", self.window.content) 
+  self.text.name:SetPoint("TOPLEFT", self.window.content, "TOPLEFT", 2, 2)
   self.text.name:SetVisible(true)
-  self.text.total = UI.CreateFrame("Text", "Total", self.window.frame) 
-  self.text.total:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 150, 2)
+  self.text.total = UI.CreateFrame("Text", "Total", self.window.content) 
+  self.text.total:SetPoint("TOPLEFT", self.window.content, "TOPLEFT", 150, 2)
   self.text.total:SetVisible(true)
-  self.text.change = UI.CreateFrame("Text", "Change", self.window.frame) 
-  self.text.change:SetPoint("TOPLEFT", self.window.frame, "TOPLEFT", 215, 2)
+  self.text.change = UI.CreateFrame("Text", "Change", self.window.content) 
+  self.text.change:SetPoint("TOPLEFT", self.window.content, "TOPLEFT", 215, 2)
   self.text.change:SetVisible(true)
 end
 
