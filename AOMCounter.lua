@@ -97,14 +97,15 @@ function AOMCounter.UI:init()
     print("Got it!")
   end
   self.achievement.icon = UI.CreateFrame("Texture", "AchievementIcon", self.window.content)
-  self.achievement.icon:SetPoint("BOTTOMLEFT", self.window.content, "BOTTOMLEFT", 2, -2)
+  self.achievement.icon:SetPoint("BOTTOMLEFT", self.window.content, "BOTTOMLEFT", 4, -2)
   self.achievement.icon:SetWidth(52)
   self.achievement.icon:SetHeight(52)
+  self.achievement.icon:SetAlpha(0.5)
   self.achievement.icon:SetVisible(true)
 
   self.achievement.text = UI.CreateFrame("Text", "AchievementText", self.window.content)
-  self.achievement.text:SetPoint("BOTTOMLEFT", self.window.content, "BOTTOMLEFT", 56, 2)
-  self.achievement.text:SetWidth(230)
+  self.achievement.text:SetPoint("BOTTOMLEFT", self.window.content, "BOTTOMLEFT", 58, 2)
+  self.achievement.text:SetWidth(228)
   self.achievement.text:SetHeight(58)
   self.achievement.text:SetVisible(true)
   self.achievement.text:SetWordwrap(true)
@@ -132,6 +133,7 @@ function AOMCounter:init()
   table.insert(Event.Experience.Accumulated, {self.Event.Experience, "AOMCounter", "Handle Experience Change"})
   table.insert(Event.Currency, {self.Event.Currency, "AOMCounter", "Handle Currency Change"})
   table.insert(Event.Attunement.Progress.Accumulated, {self.Event.Attunement, "AOMCounter", "Handle Attunement Change"})
+  table.insert(Event.Achievement.Update, {AOMCounter.Event.Achievement, "AOMCounter", "Handle Achievement Change"})
   print "AOM Counter loaded."  
 end
 
@@ -237,5 +239,4 @@ end
 
 -- Register callbacks.
 table.insert(Command.Slash.Register("aom"), {AOMCounter.Event.SlashHandler, "AOMCounter", "Slash Command"})
-table.insert(Event.Achievement.Update, {AOMCounter.Event.Achievement, "AOMCounter", "Handle Achievement Change"})
  
