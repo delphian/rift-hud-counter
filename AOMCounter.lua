@@ -213,9 +213,9 @@ function AOMCounter.Event.Achievement(achievements)
     if (maxcount >= 1) then
       break;
     end
-    maxcount = maxcount + 1
     local achievement = AOMRift.Achievement:load(achievement_key)
     if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
+      maxcount = maxcount + 1
       -- Debug output. 
       if (AOMCounter.Config.Debug.achievements == true) then
         print("----------------------------------------")
