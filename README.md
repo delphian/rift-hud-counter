@@ -67,16 +67,19 @@ Rift one more time__.
 Usage
 =====
 
-Start the addon:
-
-    /aom init
-
-Reset the counters:
-
-    /aom reset
+- Start the counter: `/aom init`
+- Reset the counters: `/aom reset`
+- Show the counter `/aom show`
 
 Errors
 =====
 
 Please report all errors, installation problems, or suggestions to
 https://github.com/delphian/AOMCounter/issues/new
+
+Rift Lua API Documentation
+=====
+- http://forums.riftgame.com/rift-general-discussions/addon-api-development/
+- http://pastebin.com/Ra9pix1k
+- http://www.seebs.net/rift/live/index.html
+- http://wiki.riftui.com/Main_Page

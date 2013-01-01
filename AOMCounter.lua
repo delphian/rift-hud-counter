@@ -1,7 +1,3 @@
--- API Reference Material:
--- http://pastebin.com/Ra9pix1k
--- http://www.seebs.net/rift/live/index.html
--- http://wiki.riftui.com/Main_Page
 
 -- Main class.
 AOMCounter = {
@@ -96,18 +92,13 @@ function AOMCounter.UI:init()
   function self.window.content.Event:LeftClick()
     print("Got it!")
   end
-  self.achievement.icon = UI.CreateFrame("Texture", "AchievementIcon", self.window.content)
-  self.achievement.icon:SetPoint("BOTTOMLEFT", self.window.content, "BOTTOMLEFT", 4, -2)
-  self.achievement.icon:SetWidth(52)
-  self.achievement.icon:SetHeight(52)
-  self.achievement.icon:SetAlpha(0.5)
-  self.achievement.icon:SetVisible(true)
+  
+  position = { width = 48, height = 48, bottom = 2, left = 4 }
+  self.achievement.icon = AOMRift.UI:Content(self.window.content, position, { alpha = 0.75 }, "Texture")
 
-  self.achievement.text = UI.CreateFrame("Text", "AchievementText", self.window.content)
-  self.achievement.text:SetPoint("BOTTOMLEFT", self.window.content, "BOTTOMLEFT", 58, 2)
-  self.achievement.text:SetWidth(228)
-  self.achievement.text:SetHeight(58)
-  self.achievement.text:SetVisible(true)
+  position = { height = 48, left = 56, bottom = 2, right = 2 }
+  background = { red = 1, green = 1, blue = 1, alpha = 0.1 }
+  self.achievement.text = AOMRift.UI:Content(self.window.content, position, background, "Text")
   self.achievement.text:SetWordwrap(true)
   
   self.text.name = UI.CreateFrame("Text", "Currency", self.window.content) 
@@ -134,7 +125,7 @@ function AOMCounter:init()
   table.insert(Event.Currency, {self.Event.Currency, "AOMCounter", "Handle Currency Change"})
   table.insert(Event.Attunement.Progress.Accumulated, {self.Event.Attunement, "AOMCounter", "Handle Attunement Change"})
   table.insert(Event.Achievement.Update, {AOMCounter.Event.Achievement, "AOMCounter", "Handle Achievement Change"})
-  print "AOM Counter loaded."  
+  print("AOM Counter loaded. (".._VERSION.."). Type /aom for help.")  
 end
 
 -- Reset all the counters.
@@ -179,6 +170,12 @@ end
 -- Callback for Command.Slash.Register
 -- Process slash commands from the chat command line.
 function AOMCounter.Event.SlashHandler(params)
+  if params == "" then
+    print("/aom init, initialize the counter")
+    print("/aom show, show the counter")
+    print("/aom reset, reset the counter")
+    print("/aom dbgach, debug achievements")
+  end
   if params == "init" then
     AOMCounter:init()
     AOMCounter:update()
@@ -187,6 +184,9 @@ function AOMCounter.Event.SlashHandler(params)
     AOMCounter:reset()
     AOMCounter:update()
     print "Counters reset."
+  end
+  if params == "show" then
+    AOMCounter.UI.window:SetVisible(true)
   end
   if params == "debug achievements" or params == "dbgach" then
     if AOMCounter.Config.Debug.achievements == true then
@@ -210,7 +210,7 @@ function AOMCounter.Event.Achievement(achievements)
   end
   for achievement_key, v in pairs(achievements) do
     -- Place a cap on how many achievements we will do. The rest get ignored, sorry.
-    if (maxcount >= 10) then
+    if (maxcount >= 1) then
       break;
     end
     maxcount = maxcount + 1
@@ -223,7 +223,7 @@ function AOMCounter.Event.Achievement(achievements)
       end
       -- Output the achievement information.
       AOMCounter.UI.achievement.icon:SetTexture("Rift", achievement.detail.icon)
-      achText = achievement.category.name .. ": " .. achievement.name .. ":\n" .. achievement.description .. ":\n"
+      achText = achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description .. ": "
       -- Output the requirements.    
       for req_key, req_value in ipairs(achievement:get_incomplete()) do
         req = achievement:get_req(req_key)
