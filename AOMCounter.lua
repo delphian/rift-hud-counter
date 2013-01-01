@@ -9,6 +9,7 @@ AOMCounter = {
     lines = nil,
     window = nil,
     text = {},
+    achievement = {},
   },
   Event = {},
   Currency = {
@@ -91,10 +92,23 @@ function AOMCounter.UI:init()
   -- Calculate how tall a window we need. All our currencies will take up
   -- one line each, plus the experiecen and pa experience lines.
   self.lines = AOMMath:count(Inspect.Currency.List()) + 2
-  self.window = AOMRift.UI:Window("title", 280, (13 * self.lines))
+  self.window = AOMRift.UI:Window("title", 280, (13 * self.lines) + 60)
   function self.window.content.Event:LeftClick()
     print("Got it!")
   end
+  self.achievement.icon = UI.CreateFrame("Texture", "AchievementIcon", self.window.content)
+  self.achievement.icon:SetPoint("BOTTOMLEFT", self.window.content, "BOTTOMLEFT", 2, -2)
+  self.achievement.icon:SetWidth(52)
+  self.achievement.icon:SetHeight(52)
+  self.achievement.icon:SetVisible(true)
+
+  self.achievement.text = UI.CreateFrame("Text", "AchievementText", self.window.content)
+  self.achievement.text:SetPoint("BOTTOMLEFT", self.window.content, "BOTTOMLEFT", 56, 2)
+  self.achievement.text:SetWidth(230)
+  self.achievement.text:SetHeight(58)
+  self.achievement.text:SetVisible(true)
+  self.achievement.text:SetWordwrap(true)
+  
   self.text.name = UI.CreateFrame("Text", "Currency", self.window.content) 
   self.text.name:SetPoint("TOPLEFT", self.window.content, "TOPLEFT", 2, 2)
   self.text.name:SetVisible(true)
@@ -206,15 +220,17 @@ function AOMCounter.Event.Achievement(achievements)
         print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
       end
       -- Output the achievement information.
-      print(achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description)
+      AOMCounter.UI.achievement.icon:SetTexture("Rift", achievement.detail.icon)
+      achText = achievement.category.name .. ": " .. achievement.name .. ":\n" .. achievement.description .. ":\n"
       -- Output the requirements.    
       for req_key, req_value in ipairs(achievement:get_incomplete()) do
         req = achievement:get_req(req_key)
         if (AOMCounter.Config.Debug.achievements == true) then
           print(AOMLua:print_r(req, "Requirement"))
         end
-        print("  " .. req.type .. ": " .. req.name .. " (" .. req.done .. "/" .. req.total .. ")")
-      end 
+        achText = achText .. req.name .. " (" .. req.done .. "/" .. req.total .. ")"
+      end
+      AOMCounter.UI.achievement.text:SetText(achText)
     end
   end
 end
