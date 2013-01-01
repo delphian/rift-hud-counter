@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>AOM Rift Counter by delphian</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>AOM Rift Counter</h1>
+        <p>Small window that displays the current amounts of all currencies and experience gains in Rift. Achievement progress is noted to the general chat window.</p>
+
+        <p class="view"><a href="https://github.com/delphian/AOMCounter">View the Project on GitHub <small>delphian/AOMCounter</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/delphian/AOMCounter/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/delphian/AOMCounter/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/delphian/AOMCounter">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>AOM Rift Counter</h1>
+
+<p>Small window that displays the current amounts of all currencies and experience in Rift. 
+Any achievements you progress in while playing will be posted in the console chat.</p>
+
+<h1>Installation</h1>
+
+<h2>First locate Rift's addon directory:</h2>
+
+<ol>
+<li>From rift activate the main menu by pressing the 'esc' key.</li>
+<li>Click on the <code>Addons</code> button.</li>
+<li>Click on the <code>Open Addons Directory</code> button.</li>
+</ol><h2>If you use git (the good way):</h2>
+
+<ul>
+<li>Open the command prompt.
+
+<ul>
+<li>Click on the windows start button.</li>
+<li>Select <code>run</code> and type <code>command</code> then hit enter. <em>OR</em> type <code>command</code> in the search box and select <code>command prompt</code> when displayed.</li>
+</ul>
+</li>
+<li>Navigate to the Rift addon directory. The <code>delphian</code> in the following command must
+replaced with your username on the computer. You can find what this path should really
+look like by examining the path in the folder that was opened when you clicked on the
+<code>Open Addons Directory</code> while in Rift.
+
+<ul>
+<li><code>cd C:\Users\delphian\Documents\RIFT\Interface\Addons</code></li>
+</ul>
+</li>
+<li>Once in the Rift addons directory issue following commands:
+
+<ul>
+<li><code>git clone git://github.com/delphian/AOMCounter.git</code></li>
+<li><code>cd AOMCounter</code></li>
+<li><code>git submodule init</code></li>
+<li><code>git submodule update</code></li>
+</ul>
+</li>
+</ul><h2>Or, download the zip files and extract (the bad way):</h2>
+
+<p><strong>Step 1:</strong></p>
+
+<ul>
+<li>Download <a href="https://github.com/delphian/AOMCounter/archive/master.zip">https://github.com/delphian/AOMCounter/archive/master.zip</a> </li>
+<li>Extract the first zip file into the addon folder, this will create a <code>AOMCounter-master</code> folder.
+
+<ul>
+<li>From your browser show the <code>AOMCounter-master.zip</code> file, select <code>show in folder</code>.</li>
+<li>Drag and drop the <code>AOMCounter-master.zip</code> file into the Rift addon folder.</li>
+<li>Right click on the <code>AOMCounter-master.zip</code> file and select <code>extract here</code>. </li>
+</ul>
+</li>
+<li>Rename the newly created <code>AOMCounter-master</code> to <code>AOMCounter</code>.
+
+<ul>
+<li>Right click on the <code>AOMCounter-master</code> folder and select <code>rename</code>.</li>
+<li>Type in <code>AOMCounter</code> and hit enter.</li>
+</ul>
+</li>
+<li>Enter the <code>AOMCounter</code> folder. Double click on the folder to do this. </li>
+<li>Delete the <code>AOMRift</code> folder that resides in <code>AOMCounter</code>.
+
+<ul>
+<li>Right click on the <code>AOMRift</code> folder and select <code>delete</code>.</li>
+</ul>
+</li>
+</ul><p><strong>Step 2:</strong></p>
+
+<ul>
+<li>Download <a href="https://github.com/delphian/AOMRift/archive/master.zip">https://github.com/delphian/AOMRift/archive/master.zip</a>
+</li>
+<li>Extract the second zip file into the <code>AOMCounter</code> folder, this will create a <code>AOMRift-master</code> folder.
+
+<ul>
+<li>From your browser show the <code>AOMRift-master.zip</code> file, select <code>show in folder</code>.</li>
+<li>Drag and drop the <code>AOMRift-master.zip</code> file into the <code>AOMCounter</code> folder.</li>
+<li>Right click on the <code>AOMRift-master.zip</code> file and select <code>Extract here</code>.</li>
+</ul>
+</li>
+<li>Rename the newly created <code>AOMRift-master</code> folder to <code>AOMRift</code>
+
+<ul>
+<li>Right click on the <code>AOMRift-master</code> folder and select <code>rename</code>.</li>
+<li>Type in <code>AOMRift</code> and hit enter.</li>
+</ul>
+</li>
+</ul><h2>Enable the addon:</h2>
+
+<p>Now restart Rift, refresh the addons and enable the AOMCounter. <strong>You may need to restart
+Rift one more time</strong>.</p>
+
+<h1>Usage</h1>
+
+<ul>
+<li>Start the counter: <code>/aom init</code>
+</li>
+<li>Reset the counters: <code>/aom reset</code>
+</li>
+<li>Show the counter <code>/aom show</code>
+</li>
+</ul><h1>Errors</h1>
+
+<p>Please report all errors, installation problems, or suggestions to
+<a href="https://github.com/delphian/AOMCounter/issues/new">https://github.com/delphian/AOMCounter/issues/new</a></p>
+
+<h1>Rift Lua API Documentation</h1>
+
+<ul>
+<li><a href="http://forums.riftgame.com/rift-general-discussions/addon-api-development/">http://forums.riftgame.com/rift-general-discussions/addon-api-development/</a></li>
+<li><a href="http://pastebin.com/Ra9pix1k">http://pastebin.com/Ra9pix1k</a></li>
+<li><a href="http://www.seebs.net/rift/live/index.html">http://www.seebs.net/rift/live/index.html</a></li>
+<li><a href="http://wiki.riftui.com/Main_Page">http://wiki.riftui.com/Main_Page</a></li>
+</ul>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/delphian">delphian</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
