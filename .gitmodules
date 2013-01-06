@@ -1,0 +1,3 @@
+[submodule "aomLibRift"]
+	path = aomLibRift
+	url = git@github.com:delphian/aomLibRift.git

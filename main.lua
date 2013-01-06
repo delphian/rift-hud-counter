@@ -1,6 +1,6 @@
 
 -- Main class.
-AOMCounter = {
+HUDCounter = {
   UI = {
     lines = nil,
     window = nil,
@@ -27,8 +27,8 @@ AOMCounter = {
 }
 
 -- Update or initialize experience change.
--- @see AOMCounter.Event.Experience()
-function AOMCounter.Experience:update()
+-- @see HUDCounter.Event.Experience()
+function HUDCounter.Experience:update()
   if self.last == nil then
     self.last = Inspect.Experience()
   end
@@ -44,8 +44,8 @@ function AOMCounter.Experience:update()
   self.pctChange = AOMMath:round(change, 1)
 end
 -- Update or initialize attunement change.
--- @see AOMCounter.Event.Attunement()
-function AOMCounter.Attunement:update()
+-- @see HUDCounter.Event.Attunement()
+function HUDCounter.Attunement:update()
   if self.last == nil then
     self.last = Inspect.Attunement.Progress()
   end
@@ -61,30 +61,30 @@ function AOMCounter.Attunement:update()
   self.pctChange = AOMMath:round(change, 1)
 end
 -- Update or initialize currency change.
--- @see AOMCounter.Event.Currency()
-function AOMCounter.Currency:update()
+-- @see HUDCounter.Event.Currency()
+function HUDCounter.Currency:update()
   if self.last == nil then
     self.last = Inspect.Currency.List() 
   end
 end
 -- Callback for Event.Experience.
-function AOMCounter.Event.Experience()
-  AOMCounter.Experience:update()
-  AOMCounter:update()
+function HUDCounter.Event.Experience()
+  HUDCounter.Experience:update()
+  HUDCounter:update()
 end
 -- Callback for Event.Experience.
-function AOMCounter.Event.Attunement()
-  AOMCounter.Attunement:update()
-  AOMCounter:update()
+function HUDCounter.Event.Attunement()
+  HUDCounter.Attunement:update()
+  HUDCounter:update()
 end
 -- Callback for Event.Currency
-function AOMCounter.Event.Currency(currencies)
-  AOMCounter.Currency:update()
-  AOMCounter:update()
+function HUDCounter.Event.Currency(currencies)
+  HUDCounter.Currency:update()
+  HUDCounter:update()
 end
 
 -- Initialize the graphic window.
-function AOMCounter.UI:init()
+function HUDCounter.UI:init()
   -- Calculate how tall a window we need. All our currencies will take up
   -- one line each, plus the experiecen and pa experience lines.
   self.lines = AOMMath:count(Inspect.Currency.List()) + 2
@@ -112,8 +112,8 @@ function AOMCounter.UI:init()
   self.text.change:SetVisible(true)
 end
 
--- Initialize AOMCounter.
-function AOMCounter:init()
+-- Initialize HUDCounter.
+function HUDCounter:init()
   -- Calculate percents and totals to display.
   self.Currency:update()
   self.Experience:update()
@@ -121,15 +121,15 @@ function AOMCounter:init()
   -- Initialize window.
   self.UI:init()
   -- Register callbacks.
-  table.insert(Event.Experience.Accumulated, {self.Event.Experience, "AOMCounter", "Handle Experience Change"})
-  table.insert(Event.Currency, {self.Event.Currency, "AOMCounter", "Handle Currency Change"})
-  table.insert(Event.Attunement.Progress.Accumulated, {self.Event.Attunement, "AOMCounter", "Handle Attunement Change"})
-  table.insert(Event.Achievement.Update, {AOMCounter.Event.Achievement, "AOMCounter", "Handle Achievement Change"})
+  table.insert(Event.Experience.Accumulated, {self.Event.Experience, "HUDCounter", "Handle Experience Change"})
+  table.insert(Event.Currency, {self.Event.Currency, "HUDCounter", "Handle Currency Change"})
+  table.insert(Event.Attunement.Progress.Accumulated, {self.Event.Attunement, "HUDCounter", "Handle Attunement Change"})
+  table.insert(Event.Achievement.Update, {HUDCounter.Event.Achievement, "HUDCounter", "Handle Achievement Change"})
   print("AOM Counter loaded. (".._VERSION.."). Type /aom for help.")  
 end
 
 -- Reset all the counters.
-function AOMCounter:reset()
+function HUDCounter:reset()
   self.Experience.last = Inspect.Experience()
   self.Attunement.last = Inspect.Attunement.Progress()
   self.Currency.last = Inspect.Currency.List()
@@ -138,7 +138,7 @@ function AOMCounter:reset()
   self.Currency:update()
 end
 -- Update the window.
-function AOMCounter:update()
+function HUDCounter:update()
   local tName = ""
   local tTotal = ""
   local tChange = ""
@@ -169,7 +169,7 @@ end
 
 -- Callback for Command.Slash.Register
 -- Process slash commands from the chat command line.
-function AOMCounter.Event.SlashHandler(params)
+function HUDCounter.Event.SlashHandler(params)
   if params == "" then
     print("/aom init, initialize the counter")
     print("/aom show, show the counter")
@@ -177,23 +177,23 @@ function AOMCounter.Event.SlashHandler(params)
     print("/aom dbgach, debug achievements")
   end
   if params == "init" then
-    AOMCounter:init()
-    AOMCounter:update()
+    HUDCounter:init()
+    HUDCounter:update()
   end
   if params == "reset" then
-    AOMCounter:reset()
-    AOMCounter:update()
+    HUDCounter:reset()
+    HUDCounter:update()
     print "Counters reset."
   end
   if params == "show" then
-    AOMCounter.UI.window:SetVisible(true)
+    HUDCounter.UI.window:SetVisible(true)
   end
   if params == "debug achievements" or params == "dbgach" then
-    if AOMCounter.Config.Debug.achievements == true then
-      AOMCounter.Config.Debug.achievements = false
+    if HUDCounter.Config.Debug.achievements == true then
+      HUDCounter.Config.Debug.achievements = false
       print("Debugging achievements OFF")
     else
-      AOMCounter.Config.Debug.achievements = true
+      HUDCounter.Config.Debug.achievements = true
       print("Debugging achievements ON")
     end
   end
@@ -202,10 +202,10 @@ end
 -- Callback for Event.Achievement.Update
 -- Inform the player that they just performed an action that increased their
 -- progress in an achievement.
-function AOMCounter.Event.Achievement(achievements)
+function HUDCounter.Event.Achievement(achievements)
   -- Count each achievement. Limit maximum processed.
   local maxcount = 0
-  if (AOMCounter.Config.Debug.achievements == true) then
+  if (HUDCounter.Config.Debug.achievements == true) then
     print("========================================")
   end
   for achievement_key, v in pairs(achievements) do
@@ -217,26 +217,26 @@ function AOMCounter.Event.Achievement(achievements)
     if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
       maxcount = maxcount + 1
       -- Debug output. 
-      if (AOMCounter.Config.Debug.achievements == true) then
+      if (HUDCounter.Config.Debug.achievements == true) then
         print("----------------------------------------")
         print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
       end
       -- Output the achievement information.
-      AOMCounter.UI.achievement.icon:SetTexture("Rift", achievement.detail.icon)
+      HUDCounter.UI.achievement.icon:SetTexture("Rift", achievement.detail.icon)
       achText = achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description .. ": "
       -- Output the requirements.    
       for req_key, req_value in ipairs(achievement:get_incomplete()) do
         req = achievement:get_req(req_key)
-        if (AOMCounter.Config.Debug.achievements == true) then
+        if (HUDCounter.Config.Debug.achievements == true) then
           print(AOMLua:print_r(req, "Requirement"))
         end
         achText = achText .. req.name .. " (" .. req.done .. "/" .. req.total .. ")"
       end
-      AOMCounter.UI.achievement.text:SetText(achText)
+      HUDCounter.UI.achievement.text:SetText(achText)
     end
   end
 end
 
 -- Register callbacks.
-table.insert(Command.Slash.Register("aom"), {AOMCounter.Event.SlashHandler, "AOMCounter", "Slash Command"})
+table.insert(Command.Slash.Register("aom"), {HUDCounter.Event.SlashHandler, "HUDCounter", "Slash Command"})
  

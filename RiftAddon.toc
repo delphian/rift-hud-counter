@@ -1,27 +1,26 @@
-Identifier = "AOMCounter"
- 
-Name = "AOM Counter"
- 
-Description = "Currency and experience counter"
- 
+Identifier = "HUDCounter"
+
+Name = "HUD Counter"
+
+Description = "Currency, experience, and achievement HUD counter. A window that displays current, and changes to, experience and all currencies. Progress in achievements are displayed at the bottom with the achievements icon."
+
 Author = "Bryan Hazelbaker"
- 
-Version = "1"
- 
+
+Version = "2.1-0.5.1"
+
 Email = "bryan.hazelbaker@gmail.com"
- 
-Environment = "1.9"
+
+Environment = "2.1"
 
 Embed = {
-  AOMRift = true,
+  aomLibRift = true,
 }
 
 Dependencies = {
-  AOMRift = {"required", "before"},
+  aomLibRift = {"required", "before"},
 }
- 
+
 RunOnStartup = {
-  "AOMMain.lua",
-  "AOMMath.lua",
-  "AOMCounter.lua",
+  "main.lua",
+  "math.lua",
 }
