@@ -13,15 +13,14 @@ Email = "bryan.hazelbaker@gmail.com"
 Environment = "2.1"
 
 Embed = {
-  aomLibRift = true,
+  luaRiftLibrary = true,
 }
 
 Dependencies = {
-  aomLibRift = {"required", "before"},
+  luaRiftLibrary = {"required", "before"},
 }
 
 RunOnStartup = {
-  "lua-php-library/main.lua",
   "main.lua",
   "achievement.lua",
   "math.lua",
