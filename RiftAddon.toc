@@ -21,7 +21,7 @@ Dependencies = {
 }
 
 RunOnStartup = {
-  "main.lua",
   "achievement.lua",
+  "main.lua",
   "math.lua",
 }
