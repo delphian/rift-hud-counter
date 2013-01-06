@@ -1,3 +1,0 @@
-[submodule "luaRiftLibrary"]
-	path = luaRiftLibrary
-	url = git@github.com:delphian/lua-rift-library.git
