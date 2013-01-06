@@ -22,8 +22,13 @@ HUDCounter = {
     pctChange = 0,
   },
   Config = {
-    Debug = { achievements = false, }
-  }
+    Debug = { achievements = false, },
+    Achievement = {
+      ignore = {},
+      watch = {},
+      queue = {},
+    },
+  },
 }
 
 -- Update or initialize experience change.
@@ -114,6 +119,7 @@ end
 
 -- Initialize HUDCounter.
 function HUDCounter:init()
+  self.Achievement:init()
   -- Calculate percents and totals to display.
   self.Currency:update()
   self.Experience:update()
@@ -216,7 +222,7 @@ function HUDCounter.Event.Achievement(achievements)
     local achievement = AOMRift.Achievement:load(achievement_key)
     if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
       maxcount = maxcount + 1
-      -- Debug output. 
+      -- Debug output.
       if (HUDCounter.Config.Debug.achievements == true) then
         print("----------------------------------------")
         print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
@@ -224,7 +230,7 @@ function HUDCounter.Event.Achievement(achievements)
       -- Output the achievement information.
       HUDCounter.UI.achievement.icon:SetTexture("Rift", achievement.detail.icon)
       achText = achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description .. ": "
-      -- Output the requirements.    
+      -- Output the requirements.
       for req_key, req_value in ipairs(achievement:get_incomplete()) do
         req = achievement:get_req(req_key)
         if (HUDCounter.Config.Debug.achievements == true) then
@@ -239,4 +245,3 @@ end
 
 -- Register callbacks.
 table.insert(Command.Slash.Register("aom"), {HUDCounter.Event.SlashHandler, "HUDCounter", "Slash Command"})
- 
