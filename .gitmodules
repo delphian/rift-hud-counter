@@ -1,6 +1,6 @@
 [submodule "aomLibRift"]
 	path = aomLibRift
-	url = git@github.com:delphian/aomLibRift.git
+	url = git@github.com:delphian/lua-rift-library.git
 [submodule "lua-php-library"]
 	path = lua-php-library
 	url = git@github.com:delphian/lua-php-library.git

@@ -21,7 +21,8 @@ Dependencies = {
 }
 
 RunOnStartup = {
-  "achievement.lua",
+  "lua-php-library/main.lua",
   "main.lua",
+  "achievement.lua",
   "math.lua",
 }
