@@ -46,13 +46,14 @@ function HUDCounter.Achievement:Redraw(window)
   -- Initially set all rows to invisible.
   for key, value in ipairs(self.Config.rows) do
     self.Config.rows[key].icon:SetVisible(false)
+    -- @todo self.Config.rows[key].icon:SetTexture("")
     self.Config.rows[key].text:SetVisible(false)
     self.Config.rows[key].text:SetText("")
     self.Config.rows[key].achId = nil
   end
   -- Change the window size if required.
-  local newHeight = (PHP.count(self.Config.watch) + 1) * 60
-  local oldHeight = (PHP.count(self.Config.rows) * 60)
+  local newHeight = (PHP.count(self.Config.watch) + 1) * 52
+  local oldHeight = (PHP.count(self.Config.rows) * 52)
   local difHeight = newHeight - oldHeight
   print("Old:"..oldHeight.." New:"..newHeight.." Diff:"..difHeight)
   dump(self.Config.watch)
@@ -78,6 +79,9 @@ function HUDCounter.Achievement:Redraw(window)
       self.Config.rows[index].text:SetVisible(true)
       self.Config.rows[index].achId = key
     end
+    local achievement = AOMRift.Achievement:load(key)
+    self.Config.rows[index].icon:SetTexture("Rift", achievement.detail.icon)
+    self.Config.rows[index].text:SetText(achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description .. ": ")
     index = index + 1
   end
 end
@@ -101,7 +105,7 @@ end
 --
 function HUDCounter.Achievement:DrawRow(parentFrame, offset)
   offset = (offset or 1) - 1
-  offset = (offset * 60)
+  offset = (offset * 52)
   local Row = {}
   -- Add our icon
   position = { width = 48, height = 48, bottom = (2 + offset), left = 4 }
