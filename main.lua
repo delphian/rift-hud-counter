@@ -93,19 +93,12 @@ function HUDCounter.UI:init()
   -- Calculate how tall a window we need. All our currencies will take up
   -- one line each, plus the experiecen and pa experience lines.
   self.lines = AOMMath:count(Inspect.Currency.List()) + 2
-  self.window = AOMRift.UI:Window("title", 280, (13 * self.lines) + 60)
+  self.window = AOMRift.UI:Window("title", 280, (13 * self.lines))
   function self.window.content.Event:LeftClick()
     print("Got it!")
   end
-  
-  position = { width = 48, height = 48, bottom = 2, left = 4 }
-  self.achievement.icon = AOMRift.UI:Content(self.window.content, position, { alpha = 0.75 }, "Texture")
 
-  position = { height = 48, left = 56, bottom = 2, right = 2 }
-  background = { red = 1, green = 1, blue = 1, alpha = 0.1 }
-  self.achievement.text = AOMRift.UI:Content(self.window.content, position, background, "Text")
-  self.achievement.text:SetWordwrap(true)
-  self.achievement.text:SetFontSize(10)
+  HUDCounter.Achievement:Redraw(self.window)
 
   self.text.name = UI.CreateFrame("Text", "Currency", self.window.content) 
   self.text.name:SetPoint("TOPLEFT", self.window.content, "TOPLEFT", 2, 2)
@@ -181,6 +174,9 @@ function HUDCounter.Event.SlashHandler(params)
     print("/aom show, show the counter")
     print("/aom reset, reset the counter")
     print("/aom dbgach, debug achievements")
+  end
+  if params == "resize" then
+    AOMRift.UI:resize(HUDCounter.UI.window, 400, 400)
   end
   if params == "init" then
     HUDCounter:init()

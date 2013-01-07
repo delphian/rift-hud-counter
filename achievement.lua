@@ -9,7 +9,7 @@ HUDCounter.Achievement.Event = {}
 --   (nil)
 -- @todo Load in configuration from storage.
 --
-function HUDCounter.Achievement:init()
+function HUDCounter.Achievement:init(window)
   self.Config = {}
   -- Ignore achievements in this table. Do not display.
   self.Config.ignore = {}
@@ -22,9 +22,28 @@ function HUDCounter.Achievement:init()
   self.Config.queue = {}
   -- Delay in seconds before displaying the next achievement in queue.
   self.Config.delay = 5
+
+  -- Setup our UI
+  self.UI = {}
+
   -- Register callbacks.
   table.insert(Command.Slash.Register("hudach"), {HUDCounter.Achievement.SlashHandler, "HUDCounter", "Slash Command"})
   table.insert(Event.Achievement.Update, {HUDCounter.Achievement.Event.Update, "HUDCounter", "Handle Achievement Update"})
+end
+
+--
+function HUDCounter.Achievement:Redraw(window)
+  -- Add room for our achievement notice.
+  window:SetHeight(window:GetHeight() + 60)
+  -- Add our icon
+  position = { width = 48, height = 48, bottom = 2, left = 4 }
+  self.UI.icon = AOMRift.UI:Content(window.content, position, { alpha = 0.75 }, "Texture")
+  -- Add our text box.
+  position = { height = 48, left = 56, bottom = 2, right = 2 }
+  background = { red = 1, green = 1, blue = 1, alpha = 0.1 }
+  self.UI.text = AOMRift.UI:Content(window.content, position, background, "Text")
+  self.UI.text:SetWordwrap(true)
+  self.UI.text:SetFontSize(10)
 end
 
 --
@@ -98,7 +117,7 @@ function HUDCounter.Achievement:eventUpdate(achievements)
         print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
       end
       -- Output the achievement information.
-      HUDCounter.UI.achievement.icon:SetTexture("Rift", achievement.detail.icon)
+      self.UI.icon:SetTexture("Rift", achievement.detail.icon)
       achText = achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description .. ": "
       -- Output the requirements.
       for req_key, req_value in ipairs(achievement:get_incomplete()) do
@@ -108,7 +127,7 @@ function HUDCounter.Achievement:eventUpdate(achievements)
         end
         achText = achText .. req.name .. " (" .. req.done .. "/" .. req.total .. ")"
       end
-      HUDCounter.UI.achievement.text:SetText(achText)
+      self.UI.text:SetText(achText)
     end
   end
 end
