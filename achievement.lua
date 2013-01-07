@@ -90,9 +90,29 @@ function HUDCounter.Achievement:Redraw(window)
     end
     local achievement = AOMRift.Achievement:load(key)
     self.Config.rows[index].icon:SetTexture("Rift", achievement.detail.icon)
-    self.Config.rows[index].text:SetText(achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description .. ": ")
+    self.Config.rows[index].text:SetText(self:makeDescription(achievement.id))
     index = index + 1
   end
+end
+
+--
+-- Retrieve an achievement row in the HUD associated with a achievement id.
+--
+-- @param string achId
+--   The achievement id to search for.
+--
+-- @return
+--   (table|nil) The row object if found, nil otherwise.
+--
+function HUDCounter.Achievement:FindRow(achId)
+  local Row = nil
+  for i=2, PHP.count(self.Config.rows) do
+    if (self.Config.rows[i].achId == achId) then
+      Row = self.Config.rows[i]
+      break
+    end
+  end
+  return Row
 end
 
 --
@@ -236,26 +256,50 @@ function HUDCounter.Achievement:eventUpdate(achievements)
     local achievement = AOMRift.Achievement:load(achievement_key)
     if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
       maxcount = maxcount + 1
+      -- If we are watching this achievement send it to the correct achievement
+      -- row in the HUD, otherwise default to the bottom most row.
+      local Row = self:FindRow(achievement.id)
+      if (Row == nil) then
+        Row = self.Config.rows[1]
+      end
       -- Debug output.
       if (self.Config.debug == true) then
         print("----------------------------------------")
         print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
       end
       -- Output the achievement information.
-      self.Config.rows[1].icon:SetTexture("Rift", achievement.detail.icon)
-      achText = achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description .. ": "
-      -- Output the requirements.
-      for req_key, req_value in ipairs(achievement:get_incomplete()) do
-        req = achievement:get_req(req_key)
-        if (self.Config.debug == true) then
-          print(AOMLua:print_r(req, "Requirement"))
-        end
-        achText = achText .. req.name .. " (" .. req.done .. "/" .. req.total .. ")"
-      end
-      self.Config.rows[1].text:SetText(achText)
-      self.Config.rows[1].achId = achievement.id
+      Row.icon:SetTexture("Rift", achievement.detail.icon)
+      Row.text:SetText(self:makeDescription(achievement.id))
+      Row.achId = achievement.id
     end
   end
+end
+
+--
+-- Construct description text for achievement update.
+--
+-- @param string achId
+--   The achievement id or achievement object to construct description from.
+--
+-- @return
+--   (string) Description for achievement.
+--
+function HUDCounter.Achievement:makeDescription(achId)
+  dump(achId)
+  local achievement = achId
+  if (type(achId) ~= table) then
+    achievement = AOMRift.Achievement:load(achId)
+  end
+  local achText = achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description .. ": "
+  -- Output the requirements.
+  for req_key, req_value in ipairs(achievement:get_incomplete()) do
+    req = achievement:get_req(req_key)
+    if (self.Config.debug == true) then
+      print(AOMLua:print_r(req, "Requirement"))
+    end
+    achText = achText .. req.name .. " (" .. req.done .. "/" .. req.total .. ")"
+  end
+  return achText  
 end
 
 --
