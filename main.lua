@@ -105,7 +105,8 @@ function HUDCounter.UI:init()
   background = { red = 1, green = 1, blue = 1, alpha = 0.1 }
   self.achievement.text = AOMRift.UI:Content(self.window.content, position, background, "Text")
   self.achievement.text:SetWordwrap(true)
-  
+  self.achievement.text:SetFontSize(10)
+
   self.text.name = UI.CreateFrame("Text", "Currency", self.window.content) 
   self.text.name:SetPoint("TOPLEFT", self.window.content, "TOPLEFT", 2, 2)
   self.text.name:SetVisible(true)

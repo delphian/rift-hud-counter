@@ -37,10 +37,10 @@ end
 --
 function HUDCounter.Achievement:ignore(ach_id)
   if (ach_id ~= nil) then
-    if (self.Config[ach_id] ~= nil) then
-      self.Config[ach_id] = nil
+    if (self.Config.ignore[ach_id] ~= nil) then
+      self.Config.ignore[ach_id] = nil
     else
-      self.Config[ach_id] = ach_id
+      self.Config.ignore[ach_id] = ach_id
     end
   end
   return self.Config.ignore
@@ -53,15 +53,15 @@ end
 --   Optional parameters typed after the initial slash command.
 --
 function HUDCounter.Achievement.SlashHandler(params)
-  if (params == "") then
+  local elements = PHP.explode(" ", params)
+  if (elements[1] == "") then
     print("HUD Achievement commands:")
     print("/hudach ignore")
     print("  List all ignored achievement ids.")
     print("/hudach ignore {ach_id}")
     print("  Toggle the ignore status of an achievement.")
-  end
-  if (params == "ignore") then
-    ach_ids = HUDCounter.Achievement:ignore()
+  elseif (elements[1] == "ignore") then
+    ach_ids = HUDCounter.Achievement:ignore(elements[2])
     dump(ach_ids)
   end
 end
