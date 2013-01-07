@@ -1,5 +1,6 @@
 
 HUDCounter.Achievement = {}
+HUDCounter.Achievement.Event = {}
 
 --
 -- Initialize achievement configuration and event handling.
@@ -23,6 +24,7 @@ function HUDCounter.Achievement:init()
   self.Config.delay = 5
   -- Register callbacks.
   table.insert(Command.Slash.Register("hudach"), {HUDCounter.Achievement.SlashHandler, "HUDCounter", "Slash Command"})
+  table.insert(Event.Achievement.Update, {HUDCounter.Achievement.Event.Update, "HUDCounter", "Handle Achievement Update"})
 end
 
 --
@@ -52,7 +54,9 @@ end
 -- @param string params
 --   Optional parameters typed after the initial slash command.
 --
-function HUDCounter.Achievement.SlashHandler(params)
+-- @see HUDCounter.Achievement.Event.Slash()
+--
+function HUDCounter.Achievement:eventSlash(params)
   local elements = PHP.explode(" ", params)
   if (elements[1] == "") then
     print("HUD Achievement commands:")
@@ -66,3 +70,59 @@ function HUDCounter.Achievement.SlashHandler(params)
   end
 end
 
+--
+-- Callback for Event.Achievement.Update
+--
+-- Inform the player that they just performed an action that increased their
+-- progress in an achievement.
+--
+-- @see HUDCounter.Achievement.Event.Update()
+--
+function HUDCounter.Achievement:eventUpdate(achievements)
+  -- Count each achievement. Limit maximum processed.
+  local maxcount = 0
+  if (HUDCounter.Config.Debug.achievements == true) then
+    print("========================================")
+  end
+  for achievement_key, v in pairs(achievements) do
+    -- Place a cap on how many achievements we will do. The rest get ignored, sorry.
+    if (maxcount >= 1) then
+      break;
+    end
+    local achievement = AOMRift.Achievement:load(achievement_key)
+    if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
+      maxcount = maxcount + 1
+      -- Debug output.
+      if (HUDCounter.Config.Debug.achievements == true) then
+        print("----------------------------------------")
+        print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
+      end
+      -- Output the achievement information.
+      HUDCounter.UI.achievement.icon:SetTexture("Rift", achievement.detail.icon)
+      achText = achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description .. ": "
+      -- Output the requirements.
+      for req_key, req_value in ipairs(achievement:get_incomplete()) do
+        req = achievement:get_req(req_key)
+        if (HUDCounter.Config.Debug.achievements == true) then
+          print(AOMLua:print_r(req, "Requirement"))
+        end
+        achText = achText .. req.name .. " (" .. req.done .. "/" .. req.total .. ")"
+      end
+      HUDCounter.UI.achievement.text:SetText(achText)
+    end
+  end
+end
+
+--
+-- Callback for Event.Achievement.Update
+--
+function HUDCounter.Achievement.Event.Update(achievements)
+  HUDCounter.Achievement:eventUpdate(achievements)
+end
+
+--
+-- Callback for Command.Slash.Register("hudach")
+--
+function HUDCounter.Achievement.Event.Slash(params)
+  HUDCounter.Achievement:eventSlash(params)
+end

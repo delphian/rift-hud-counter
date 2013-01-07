@@ -131,7 +131,6 @@ function HUDCounter:init()
   table.insert(Event.Experience.Accumulated, {self.Event.Experience, "HUDCounter", "Handle Experience Change"})
   table.insert(Event.Currency, {self.Event.Currency, "HUDCounter", "Handle Currency Change"})
   table.insert(Event.Attunement.Progress.Accumulated, {self.Event.Attunement, "HUDCounter", "Handle Attunement Change"})
-  table.insert(Event.Achievement.Update, {HUDCounter.Event.Achievement, "HUDCounter", "Handle Achievement Change"})
   print("AOM Counter loaded. (".._VERSION.."). Type /aom for help.")  
 end
 
@@ -202,44 +201,6 @@ function HUDCounter.Event.SlashHandler(params)
     else
       HUDCounter.Config.Debug.achievements = true
       print("Debugging achievements ON")
-    end
-  end
-end
-
--- Callback for Event.Achievement.Update
--- Inform the player that they just performed an action that increased their
--- progress in an achievement.
-function HUDCounter.Event.Achievement(achievements)
-  -- Count each achievement. Limit maximum processed.
-  local maxcount = 0
-  if (HUDCounter.Config.Debug.achievements == true) then
-    print("========================================")
-  end
-  for achievement_key, v in pairs(achievements) do
-    -- Place a cap on how many achievements we will do. The rest get ignored, sorry.
-    if (maxcount >= 1) then
-      break;
-    end
-    local achievement = AOMRift.Achievement:load(achievement_key)
-    if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
-      maxcount = maxcount + 1
-      -- Debug output.
-      if (HUDCounter.Config.Debug.achievements == true) then
-        print("----------------------------------------")
-        print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
-      end
-      -- Output the achievement information.
-      HUDCounter.UI.achievement.icon:SetTexture("Rift", achievement.detail.icon)
-      achText = achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description .. ": "
-      -- Output the requirements.
-      for req_key, req_value in ipairs(achievement:get_incomplete()) do
-        req = achievement:get_req(req_key)
-        if (HUDCounter.Config.Debug.achievements == true) then
-          print(AOMLua:print_r(req, "Requirement"))
-        end
-        achText = achText .. req.name .. " (" .. req.done .. "/" .. req.total .. ")"
-      end
-      HUDCounter.UI.achievement.text:SetText(achText)
     end
   end
 end
