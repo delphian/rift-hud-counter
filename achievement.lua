@@ -11,6 +11,8 @@ HUDCounter.Achievement.Event = {}
 --
 function HUDCounter.Achievement:init(window)
   self.Config = {}
+  -- Save the reference to window
+  self.Config.window = window
   -- Ignore achievements in this table. Do not display.
   self.Config.ignore = {}
   -- Assign a special area where achievements in this table will always be
@@ -55,13 +57,16 @@ function HUDCounter.Achievement:Redraw(window)
   local newHeight = (PHP.count(self.Config.watch) + 1) * 52
   local oldHeight = (PHP.count(self.Config.rows) * 52)
   local difHeight = newHeight - oldHeight
-  print("Old:"..oldHeight.." New:"..newHeight.." Diff:"..difHeight)
-  dump(self.Config.watch)
   window:SetHeight(window:GetHeight() + difHeight)
   -- Create update row or visually enable it if it already exists. Index 1 will always
   -- be used as the row to display recently triggered achievement updates.
   if (self.Config.rows[1] == nil) then
     self.Config.rows[1] = self:DrawRow(window.content, 1)
+    bugFix = self.Config.rows[1].icon
+    function bugFix.Event:LeftClick()
+      HUDCounter.Achievement:Watch(HUDCounter.Achievement.Config.rows[1].achId)
+      HUDCounter.Achievement:Redraw(HUDCounter.Achievement.Config.window)
+    end
   else
     self.Config.rows[1].icon:SetVisible(true)
     self.Config.rows[1].text:SetVisible(true)
@@ -72,6 +77,10 @@ function HUDCounter.Achievement:Redraw(window)
     -- If the row table does not exist then create it.
     if (self.Config.rows[index] == nil) then
       self.Config.rows[index] = self:DrawRow(window.content, index)
+      bugFix = self.Config.rows[index].icon
+      function bugFix.Event:LeftClick()
+        print("Gonna delete it... " .. achId)
+      end
     -- If the row table already exists just make it visible. We are reusing
     -- frames because I have no idea how to remove them.
     else
@@ -244,6 +253,7 @@ function HUDCounter.Achievement:eventUpdate(achievements)
         achText = achText .. req.name .. " (" .. req.done .. "/" .. req.total .. ")"
       end
       self.Config.rows[1].text:SetText(achText)
+      self.Config.rows[1].achId = achievement.id
     end
   end
 end

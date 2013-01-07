@@ -98,8 +98,6 @@ function HUDCounter.UI:init()
     print("Got it!")
   end
 
-  HUDCounter.Achievement:Redraw(self.window)
-
   self.text.name = UI.CreateFrame("Text", "Currency", self.window.content) 
   self.text.name:SetPoint("TOPLEFT", self.window.content, "TOPLEFT", 2, 2)
   self.text.name:SetVisible(true)
@@ -113,13 +111,15 @@ end
 
 -- Initialize HUDCounter.
 function HUDCounter:init()
-  self.Achievement:init()
   -- Calculate percents and totals to display.
   self.Currency:update()
   self.Experience:update()
   self.Attunement:update()
   -- Initialize window.
   self.UI:init()
+  -- Setup achievement rows inside window.
+  self.Achievement:init(self.UI.window)
+  HUDCounter.Achievement:Redraw(self.UI.window)
   -- Register callbacks.
   table.insert(Event.Experience.Accumulated, {self.Event.Experience, "HUDCounter", "Handle Experience Change"})
   table.insert(Event.Currency, {self.Event.Currency, "HUDCounter", "Handle Currency Change"})
