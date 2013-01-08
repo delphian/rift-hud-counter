@@ -124,7 +124,7 @@ function HUDCounter:init()
   table.insert(Event.Experience.Accumulated, {self.Event.Experience, "HUDCounter", "Handle Experience Change"})
   table.insert(Event.Currency, {self.Event.Currency, "HUDCounter", "Handle Currency Change"})
   table.insert(Event.Attunement.Progress.Accumulated, {self.Event.Attunement, "HUDCounter", "Handle Attunement Change"})
-  print("AOM Counter loaded. (".._VERSION.."). Type /aom for help.")  
+  print("HUD Counter loaded. (".._VERSION.."). Type /aom for help.")  
 end
 
 -- Reset all the counters.

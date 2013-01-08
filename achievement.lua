@@ -77,9 +77,11 @@ function HUDCounter.Achievement:Redraw(window)
     -- If the row table does not exist then create it.
     if (self.Config.rows[index] == nil) then
       self.Config.rows[index] = self:DrawRow(window.content, index)
+      self.Config.rows[index].icon.achId = key
       bugFix = self.Config.rows[index].icon
       function bugFix.Event:LeftClick()
-        print("Gonna delete it... " .. achId)
+        HUDCounter.Achievement:Watch(self.achId)
+        HUDCounter.Achievement:Redraw(HUDCounter.Achievement.Config.window)
       end
     -- If the row table already exists just make it visible. We are reusing
     -- frames because I have no idea how to remove them.
@@ -285,7 +287,6 @@ end
 --   (string) Description for achievement.
 --
 function HUDCounter.Achievement:makeDescription(achId)
-  dump(achId)
   local achievement = achId
   if (type(achId) ~= table) then
     achievement = AOMRift.Achievement:load(achId)
