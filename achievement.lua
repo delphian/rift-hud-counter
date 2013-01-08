@@ -86,11 +86,11 @@ function HUDCounter.Achievement:Redraw(window)
     else
       self.Config.rows[index].icon:SetVisible(true)
       self.Config.rows[index].text:SetVisible(true)
-      self.Config.rows[index].achId = key
     end
     local achievement = AOMRift.Achievement:load(key)
     self.Config.rows[index].icon:SetTexture("Rift", achievement.detail.icon)
     self.Config.rows[index].text:SetText(self:makeDescription(achievement.id))
+    self.Config.rows[index].achId = key
     index = index + 1
   end
 end
