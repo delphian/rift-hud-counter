@@ -45,19 +45,15 @@ end
 --   The frame to adjust and insert achievement monitor rows into.
 --
 function HUDCounter.Achievement:Redraw(window)
-  -- Initially set all rows to invisible.
+  -- Initially set all rows to invisible and shrink container window.
   for key, value in ipairs(self.Config.rows) do
-    self.Config.rows[key].icon:SetVisible(false)
-    -- @todo self.Config.rows[key].icon:SetTexture("")
-    self.Config.rows[key].text:SetVisible(false)
-    self.Config.rows[key].text:SetText("")
-    self.Config.rows[key].achId = nil
+    if (self.Config.rows[key].icon:GetVisible() == true) then
+      self.Config.rows[key].icon:SetVisible(false)
+      self.Config.rows[key].text:SetVisible(false)
+      self.Config.rows[key].achId = nil
+      window:SetHeight(window:GetHeight() - 52)
+    end
   end
-  -- Change the window size if required.
-  local newHeight = (PHP.count(self.Config.watch) + 1) * 52
-  local oldHeight = (PHP.count(self.Config.rows) * 52)
-  local difHeight = newHeight - oldHeight
-  window:SetHeight(window:GetHeight() + difHeight)
   -- Create update row or visually enable it if it already exists. Index 1 will always
   -- be used as the row to display recently triggered achievement updates.
   if (self.Config.rows[1] == nil) then
@@ -71,6 +67,7 @@ function HUDCounter.Achievement:Redraw(window)
     self.Config.rows[1].icon:SetVisible(true)
     self.Config.rows[1].text:SetVisible(true)
   end
+  window:SetHeight(window:GetHeight() + 52)
   -- Setup any rows for achievements that are being specifically watched.
   local index = 2
   for key, value in pairs(self.Config.watch) do
@@ -93,6 +90,7 @@ function HUDCounter.Achievement:Redraw(window)
     self.Config.rows[index].icon:SetTexture("Rift", achievement.detail.icon)
     self.Config.rows[index].text:SetText(self:makeDescription(achievement.id))
     self.Config.rows[index].achId = key
+    window:SetHeight(window:GetHeight() + 52)
     index = index + 1
   end
 end
