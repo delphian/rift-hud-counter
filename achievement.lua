@@ -27,6 +27,8 @@ function HUDCounter.Achievement:init(window)
   -- Container to be keyed by achievement id the value of which will hold a
   -- row table. The row table will contain an icon and a text description.
   self.Config.rows = {}
+  -- Height of each row
+  self.Config.rowHeight = 40
   -- Debugging.
   self.Config.debug = false
 
@@ -51,7 +53,7 @@ function HUDCounter.Achievement:Redraw(window)
       self.Config.rows[key].icon:SetVisible(false)
       self.Config.rows[key].text:SetVisible(false)
       self.Config.rows[key].achId = nil
-      window:SetHeight(window:GetHeight() - 52)
+      window:SetHeight(window:GetHeight() - self.Config.rowHeight)
     end
   end
   -- Create update row or visually enable it if it already exists. Index 1 will always
@@ -67,7 +69,7 @@ function HUDCounter.Achievement:Redraw(window)
     self.Config.rows[1].icon:SetVisible(true)
     self.Config.rows[1].text:SetVisible(true)
   end
-  window:SetHeight(window:GetHeight() + 52)
+  window:SetHeight(window:GetHeight() + self.Config.rowHeight)
   -- Setup any rows for achievements that are being specifically watched.
   local index = 2
   for key, value in pairs(self.Config.watch) do
@@ -90,7 +92,7 @@ function HUDCounter.Achievement:Redraw(window)
     self.Config.rows[index].icon:SetTexture("Rift", achievement.detail.icon)
     self.Config.rows[index].text:SetText(self:makeDescription(achievement.id))
     self.Config.rows[index].achId = key
-    window:SetHeight(window:GetHeight() + 52)
+    window:SetHeight(window:GetHeight() + self.Config.rowHeight)
     index = index + 1
   end
 end
@@ -134,13 +136,13 @@ end
 --
 function HUDCounter.Achievement:DrawRow(parentFrame, offset)
   offset = (offset or 1) - 1
-  offset = (offset * 52)
+  offset = (offset * self.Config.rowHeight)
   local Row = {}
   -- Add our icon
-  position = { width = 48, height = 48, bottom = (2 + offset), left = 4 }
+  position = { width = 48, height = (self.Config.rowHeight - 4), bottom = (2 + offset), left = 4 }
   Row.icon = AOMRift.UI:Content(parentFrame, position, { alpha = 0.75 }, "Texture")
   -- Add our text box.
-  position = { height = 48, left = 56, bottom = (2 + offset), right = 2 }
+  position = { height = (self.Config.rowHeight - 4), left = 56, bottom = (2 + offset), right = 2 }
   background = { red = 1, green = 1, blue = 1, alpha = 0.1 }
   Row.text = AOMRift.UI:Content(parentFrame, position, background, "Text")
   Row.text:SetWordwrap(true)
