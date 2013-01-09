@@ -28,7 +28,7 @@ function HUDCounter.Achievement:init(window)
   -- row table. The row table will contain an icon and a text description.
   self.Config.rows = {}
   -- Height of each row
-  self.Config.rowHeight = 40
+  self.Config.rowHeight = 30
   -- Debugging.
   self.Config.debug = false
 
@@ -76,12 +76,6 @@ function HUDCounter.Achievement:Redraw(window)
     -- If the row table does not exist then create it.
     if (self.Config.rows[index] == nil) then
       self.Config.rows[index] = self:DrawRow(window.content, index)
-      self.Config.rows[index].icon.achId = key
-      bugFix = self.Config.rows[index].icon
-      function bugFix.Event:LeftClick()
-        HUDCounter.Achievement:Watch(self.achId)
-        HUDCounter.Achievement:Redraw(HUDCounter.Achievement.Config.window)
-      end
     -- If the row table already exists just make it visible. We are reusing
     -- frames because I have no idea how to remove them.
     else
@@ -92,6 +86,13 @@ function HUDCounter.Achievement:Redraw(window)
     self.Config.rows[index].icon:SetTexture("Rift", achievement.detail.icon)
     self.Config.rows[index].text:SetText(self:makeDescription(achievement.id))
     self.Config.rows[index].achId = key
+    self.Config.rows[index].icon.achId = key
+    -- Attatch a click handler.
+    bugFix = self.Config.rows[index].icon
+    function bugFix.Event:LeftClick()
+      HUDCounter.Achievement:Watch(self.achId)
+      HUDCounter.Achievement:Redraw(HUDCounter.Achievement.Config.window)
+    end
     window:SetHeight(window:GetHeight() + self.Config.rowHeight)
     index = index + 1
   end
@@ -139,10 +140,10 @@ function HUDCounter.Achievement:DrawRow(parentFrame, offset)
   offset = (offset * self.Config.rowHeight)
   local Row = {}
   -- Add our icon
-  position = { width = 48, height = (self.Config.rowHeight - 4), bottom = (2 + offset), left = 4 }
+  position = { width = self.Config.rowHeight, height = self.Config.rowHeight, bottom = (2 + offset), left = 4 }
   Row.icon = AOMRift.UI:Content(parentFrame, position, { alpha = 0.75 }, "Texture")
   -- Add our text box.
-  position = { height = (self.Config.rowHeight - 4), left = 56, bottom = (2 + offset), right = 2 }
+  position = { height = self.Config.rowHeight, left = (self.Config.rowHeight + 4), bottom = (2 + offset), right = 2 }
   background = { red = 1, green = 1, blue = 1, alpha = 0.1 }
   Row.text = AOMRift.UI:Content(parentFrame, position, background, "Text")
   Row.text:SetWordwrap(true)
@@ -291,7 +292,7 @@ function HUDCounter.Achievement:makeDescription(achId)
   if (type(achId) ~= table) then
     achievement = AOMRift.Achievement:load(achId)
   end
-  local achText = achievement.category.name .. ": " .. achievement.name .. ": " .. achievement.description .. ": "
+  local achText = achievement.category.name .. ": " .. achievement.name .. ": " -- .. achievement.description .. ": "
   -- Output the requirements.
   for req_key, req_value in ipairs(achievement:get_incomplete()) do
     req = achievement:get_req(req_key)
