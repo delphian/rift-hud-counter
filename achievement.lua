@@ -11,6 +11,8 @@ HUDCounter.Achievement.Event = {}
 --
 function HUDCounter.Achievement:init(window)
   self.Config = {}
+  -- Enable any achievements on the HUD.
+  self.Config.enable = true
   -- Save the reference to window
   self.Config.window = window
   -- Ignore achievements in this table. Do not display.
@@ -55,6 +57,10 @@ function HUDCounter.Achievement:Redraw(window)
       self.Config.rows[key].achId = nil
       window:SetHeight(window:GetHeight() - self.Config.rowHeight)
     end
+  end
+  -- Return right now if HUD Achievements is disabled.
+  if (self.Config.enable == false) then
+    return
   end
   -- Create update row or visually enable it if it already exists. Index 1 will always
   -- be used as the row to display recently triggered achievement updates.
@@ -205,18 +211,18 @@ function HUDCounter.Achievement:eventSlash(params)
   local elements = PHP.explode(" ", params)
   if (elements[1] == "") then
     print("HUD Achievement commands:")
-    print("/hudach ignore")
-    print("  List all ignored achievement ids.")
     print("/hudach ignore {achievement_id}")
-    print("  Toggle the ignore status of an achievement.")
+    print("  Toggle the ignore status of an achievement. List all achievements ignored if no parameter specified.")
     print("/hudach watch")
-    print("  List all watched achievement ids.")
+    print("  List all watched achievement ids. List all achievements watched if no parameter specified.")
     print("/hudach watch {achievement_id}")
     print("  Toggle the watch status of an achievement.")
     print("/hudach redraw")
     print("  Destroy all achievement rows in the HUD and redraw.")
     print("/hudach debug")
     print("  Toggle debug information to console.")
+    print("/hudach enable|disable")
+    print("  Enable or disable achievements on HUD.")
   elseif (elements[1] == "debug") then
     if (self.Config.debug == true) then
       self.Config.debug = false
@@ -234,6 +240,14 @@ function HUDCounter.Achievement:eventSlash(params)
   elseif (elements[1] == "redraw") then
     print("Redrawing achievement rows...")
     self:Redraw(HUDCounter.UI.window)
+  elseif (elements[1] == "enable") then
+    self.Config.enable = true
+    print("HUD Achievements enabled.")
+    self:Redraw(self.Config.window)
+  elseif (elements[1] == "disable") then
+    self.Config.enable = false
+    print("HUD Achievements disabled.")
+    self:Redraw(self.Config.window)
   end
 end
 
@@ -246,6 +260,9 @@ end
 -- @see HUDCounter.Achievement.Event.Update()
 --
 function HUDCounter.Achievement:eventUpdate(achievements)
+  if (self.Config.enable == false) then
+    return
+  end
   -- Count each achievement. Limit maximum processed.
   local maxcount = 0
   if (self.Config.debug == true) then
