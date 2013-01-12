@@ -55,7 +55,7 @@ function HUDCounter.Achievement:Redraw(window)
       self.Config.rows[key].icon:SetVisible(false)
       self.Config.rows[key].text:SetVisible(false)
       self.Config.rows[key].achId = nil
-      window:SetHeight(window:GetHeight() - self.Config.rowHeight)
+      self.Config.window:SetHeight(self.Config.window:GetHeight() - self.Config.rowHeight)
     end
   end
   -- Return right now if HUD Achievements is disabled.
@@ -65,7 +65,7 @@ function HUDCounter.Achievement:Redraw(window)
   -- Create update row or visually enable it if it already exists. Index 1 will always
   -- be used as the row to display recently triggered achievement updates.
   if (self.Config.rows[1] == nil) then
-    self.Config.rows[1] = self:DrawRow(window.content, 1)
+    self.Config.rows[1] = self:DrawRow(self.Config.window.content, 1)
     bugFix = self.Config.rows[1].icon
     function bugFix.Event:LeftClick()
       HUDCounter.Achievement:Watch(HUDCounter.Achievement.Config.rows[1].achId)
@@ -75,13 +75,13 @@ function HUDCounter.Achievement:Redraw(window)
     self.Config.rows[1].icon:SetVisible(true)
     self.Config.rows[1].text:SetVisible(true)
   end
-  window:SetHeight(window:GetHeight() + self.Config.rowHeight)
+  self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
   -- Setup any rows for achievements that are being specifically watched.
   local index = 2
   for key, value in pairs(self.Config.watch) do
     -- If the row table does not exist then create it.
     if (self.Config.rows[index] == nil) then
-      self.Config.rows[index] = self:DrawRow(window.content, index)
+      self.Config.rows[index] = self:DrawRow(self.Config.window.content, index)
     -- If the row table already exists just make it visible. We are reusing
     -- frames because I have no idea how to remove them.
     else
@@ -99,7 +99,7 @@ function HUDCounter.Achievement:Redraw(window)
       HUDCounter.Achievement:Watch(self.achId)
       HUDCounter.Achievement:Redraw(HUDCounter.Achievement.Config.window)
     end
-    window:SetHeight(window:GetHeight() + self.Config.rowHeight)
+    self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
     index = index + 1
   end
 end
