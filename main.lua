@@ -4,13 +4,11 @@ HUDCounter = {
   UI = {
     lines = nil,
     window = nil,
+    window2 = nil,
     text = {},
     achievement = {},
   },
   Event = {},
-  Currency = {
-    last = nil,
-  },
   Attunement = {
     last = nil,
     pctTotal = 0,
@@ -65,13 +63,15 @@ function HUDCounter.Attunement:update()
   self.pctTotal = AOMMath:round(percent, 1)
   self.pctChange = AOMMath:round(change, 1)
 end
+
 -- Update or initialize currency change.
 -- @see HUDCounter.Event.Currency()
-function HUDCounter.Currency:update()
-  if self.last == nil then
-    self.last = Inspect.Currency.List() 
-  end
-end
+--function HUDCounter.Currency:update()
+--  if self.last == nil then
+--    self.last = Inspect.Currency.List() 
+--  end
+--end
+
 -- Callback for Event.Experience.
 function HUDCounter.Event.Experience()
   HUDCounter.Experience:update()
@@ -92,8 +92,9 @@ end
 function HUDCounter.UI:init()
   -- Calculate how tall a window we need. All our currencies will take up
   -- one line each, plus the experiecen and pa experience lines.
-  self.lines = AOMMath:count(Inspect.Currency.List()) + 2
-  self.window = AOMRift.UI:Window("title", 280, (13 * self.lines))
+  self.lines = 2
+  self.window = AOMRift.UI:Window("title", 280, (18 * self.lines))
+  self.window2 = AOMRift.UI:Window("title2", 280, 5)
   function self.window.content.Event:LeftClick()
     print("Got it!")
   end
@@ -112,17 +113,20 @@ end
 -- Initialize HUDCounter.
 function HUDCounter:init()
   -- Calculate percents and totals to display.
-  self.Currency:update()
+--  self.Currency:update()
   self.Experience:update()
   self.Attunement:update()
   -- Initialize window.
   self.UI:init()
   -- Setup achievement rows inside window.
   self.Achievement:init(self.UI.window)
-  HUDCounter.Achievement:Redraw(self.UI.window)
+  HUDCounter.Achievement:Redraw()
+  -- Setup currency rows inside window.
+  self.Currency:init(self.UI.window2)
+  HUDCounter.Currency:Redraw()
   -- Register callbacks.
   table.insert(Event.Experience.Accumulated, {self.Event.Experience, "HUDCounter", "Handle Experience Change"})
-  table.insert(Event.Currency, {self.Event.Currency, "HUDCounter", "Handle Currency Change"})
+--  table.insert(Event.Currency, {self.Event.Currency, "HUDCounter", "Handle Currency Change"})
   table.insert(Event.Attunement.Progress.Accumulated, {self.Event.Attunement, "HUDCounter", "Handle Attunement Change"})
   print("HUD Counter loaded. (".._VERSION.."). Type /aom for help.")  
 end
@@ -131,11 +135,12 @@ end
 function HUDCounter:reset()
   self.Experience.last = Inspect.Experience()
   self.Attunement.last = Inspect.Attunement.Progress()
-  self.Currency.last = Inspect.Currency.List()
+--  self.Currency.last = Inspect.Currency.List()
   self.Experience:update()
   self.Attunement:update()
-  self.Currency:update()
+--  self.Currency:update()
 end
+
 -- Update the window.
 function HUDCounter:update()
   local tName = ""
@@ -144,14 +149,14 @@ function HUDCounter:update()
   local percent = 0
   local change = 0
   -- Currency.
-  local currencies = Inspect.Currency.List()
-  for k,v in pairs(currencies) do
-    detail = Inspect.Currency.Detail(k)
-    change = v - self.Currency.last[k]
-    tName = tName .. detail.name .. "\n"
-    tChange = tChange .. change .. "\n" 
-    tTotal = tTotal .. v .. "\n"
-  end
+--  local currencies = Inspect.Currency.List()
+--  for k,v in pairs(currencies) do
+--    detail = Inspect.Currency.Detail(k)
+--    change = v - self.Currency.last[k]
+--    tName = tName .. detail.name .. "\n"
+--    tChange = tChange .. change .. "\n" 
+--    tTotal = tTotal .. v .. "\n"
+--  end
   -- Attunement.
   tName = tName .. "PA Experience" .. "\n"
   tChange = tChange .. self.Attunement.pctChange .. "%\n"

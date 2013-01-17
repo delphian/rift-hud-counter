@@ -62,7 +62,11 @@ function HUDCounter.Currency:Redraw()
   -- Create update row or visually enable it if it already exists. Index 1 will always
   -- be used as the row to display recently triggered currency updates.
   if (self.Config.rows[1] == nil) then
+    print("OKOK")
     self.Config.rows[1] = self:DrawRow(self.Config.window.content, 1)
+    if (self.Config.rows[1] == nil) then
+      print("Unable to create currency row 1.")
+    end
     bugFix = self.Config.rows[1].icon
     function bugFix.Event:LeftClick()
       HUDCounter.Currency:Watch(HUDCounter.Currency.Config.rows[1].id)
@@ -220,6 +224,12 @@ function HUDCounter.Currency:EventSlash(params)
     print("  Toggle debug information to console.")
     print("/hudcur enable|disable")
     print("  Enable or disable currencies on HUD.")
+    print("/hudcur detail {currency_id}")
+    print("  Detail specified currency. List all known currencies if no id is specified.")
+    print("/hudcur print {currency_id}")
+    print("  Force the HUD to show a currency as if it updated.")
+    print("/hudcur icon {icon_path}")
+    print("  Force the HUD latest row icon to show an arbitrary icon")
   elseif (elements[1] == "debug") then
     if (self.Config.debug == true) then
       self.Config.debug = false
@@ -245,7 +255,45 @@ function HUDCounter.Currency:EventSlash(params)
     self.Config.enable = false
     print("HUD Currencies disabled.")
     self:Redraw()
+  elseif (elements[1] == "detail") then
+    if (elements[2] ~= nil) then
+      print(PHP.print_r(Inspect.Currency.Detail(elements[2]), true))
+    else
+      print(PHP.print_r(Inspect.Currency.List(), true))
+    end
+  elseif (elements[1] == "print") then
+    if (AOMRift.Currency.exists(elements[2])) then
+      self:Print(elements[2])
+    else
+      print("Currency does not exist.")
+    end
+  elseif (elements[1] == "icon") then
+    self.Config.rows[1].icon.SetTexture("Rift", elements[2])
   end
+end
+
+--
+-- Print a currency to the window.
+--
+-- @param string currency_id
+--   Currency id to update window with.
+--
+function HUDCounter.Currency:Print(currency_id)
+  local currency = AOMRift.Currency:load(currency_id)
+  -- If we are watching this currency send it to the correct currency
+  -- row in the HUD, otherwise default to the bottom most row.
+  local Row = self:FindRow(currency.id) or self.Config.rows[1]
+  -- Debug output.
+  if (self.Config.debug == true) then
+    print("----------------------------------------")
+    print(AOMLua:print_r(currency, "Currency " .. currency.id))
+  end
+  -- Output the currency information.
+  if (currency.icon ~= nil) then
+    Row.icon:SetTexture("Rift", currency.icon)
+  end
+  Row.text:SetText(self:makeDescription(currency.id))
+  Row.id = currency.id
 end
 
 --
@@ -263,22 +311,7 @@ function HUDCounter.Currency:EventUpdate(currencies)
     print("========================================")
   end
   for currency_key, v in pairs(currencies) do
-    local currency = AOMRift.Currency:load(currency_key)
-    -- If we are watching this currency send it to the correct currency
-    -- row in the HUD, otherwise default to the bottom most row.
-    local Row = self:FindRow(currency.id)
-    if (Row == nil) then
-      Row = self.Config.rows[1]
-    end
-    -- Debug output.
-    if (self.Config.debug == true) then
-      print("----------------------------------------")
-      print(AOMLua:print_r(currency, "Currency " .. currency.id))
-    end
-    -- Output the currency information.
-    Row.icon:SetTexture("Rift", currency.detail.icon)
-    Row.text:SetText(self:makeDescription(currency.id))
-    Row.id = currency.id
+    self:Print(currency_key)
   end
 end
 
@@ -296,7 +329,7 @@ function HUDCounter.Currency:makeDescription(id)
   if (type(id) ~= table) then
     currency = AOMRift.Currency:load(id)
   end
-  local curText = currency.category.name .. ": " .. currency.name
+  local curText = currency.name .. ": " .. currency.value
   return curText  
 end
 
