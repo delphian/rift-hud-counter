@@ -94,7 +94,15 @@ function HUDCounter.UI:init()
   -- one line each, plus the experiecen and pa experience lines.
   self.lines = 2
   self.window = AOMRift.UI:Window("title", 280, (18 * self.lines))
-  self.window2 = AOMRift.UI:Window("title2", 280, 5)
+  self.window.achievement = AOMRift.UI:Content(self.window.content, 
+    { top = 30, left = 0, right = 0, height = 1 },
+    { alpha = 0 }, "Frame"
+  )
+  self.window.currency = AOMRift.UI:Content(self.window.content, 
+    { top = 0, bottom = 0, left = 0, right = 0, height = 1 },
+    { alpha = 0 }, "Frame"
+  )
+  AOMRift.UI:Attatch(self.window.currency, self.window.achievement, "bottom")
   function self.window.content.Event:LeftClick()
     print("Got it!")
   end
@@ -119,10 +127,10 @@ function HUDCounter:init()
   -- Initialize window.
   self.UI:init()
   -- Setup achievement rows inside window.
-  self.Achievement:init(self.UI.window)
+  self.Achievement:init(self.UI.window, self.UI.window.achievement)
   HUDCounter.Achievement:Redraw()
   -- Setup currency rows inside window.
-  self.Currency:init(self.UI.window2)
+  self.Currency:init(self.UI.window, self.UI.window.currency)
   HUDCounter.Currency:Redraw()
   -- Register callbacks.
   table.insert(Event.Experience.Accumulated, {self.Event.Experience, "HUDCounter", "Handle Experience Change"})

@@ -9,12 +9,13 @@ HUDCounter.Currency.Event = {}
 --   (nil)
 -- @todo Load in configuration from storage.
 --
-function HUDCounter.Currency:init(window)
+function HUDCounter.Currency:init(window, content)
   self.Config = {}
   -- Enable any currencies on the HUD.
   self.Config.enable = true
   -- Save the reference to window
   self.Config.window = window
+  self.Config.content = content
   -- Ignore currencies in this table. Do not display.
   self.Config.ignore = {}
   -- Assign a special area where currencies in this table will always be
@@ -53,6 +54,7 @@ function HUDCounter.Currency:Redraw()
       self.Config.rows[key].text:SetVisible(false)
       self.Config.rows[key].achId = nil
       self.Config.window:SetHeight(self.Config.window:GetHeight() - self.Config.rowHeight)
+      self.Config.content:SetHeight(self.Config.content:GetHeight() - self.Config.rowHeight)
     end
   end
   -- Return right now if HUD Currencies is disabled.
@@ -62,8 +64,7 @@ function HUDCounter.Currency:Redraw()
   -- Create update row or visually enable it if it already exists. Index 1 will always
   -- be used as the row to display recently triggered currency updates.
   if (self.Config.rows[1] == nil) then
-    print("OKOK")
-    self.Config.rows[1] = self:DrawRow(self.Config.window.content, 1)
+    self.Config.rows[1] = self:DrawRow(self.Config.content, 1)
     if (self.Config.rows[1] == nil) then
       print("Unable to create currency row 1.")
     end
@@ -77,12 +78,13 @@ function HUDCounter.Currency:Redraw()
     self.Config.rows[1].text:SetVisible(true)
   end
   self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
+  self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.rowHeight)
   -- Setup any rows for currencies that are being specifically watched.
   local index = 2
   for key, value in pairs(self.Config.watch) do
     -- If the row table does not exist then create it.
     if (self.Config.rows[index] == nil) then
-      self.Config.rows[index] = self:DrawRow(self.Config.window.content, index)
+      self.Config.rows[index] = self:DrawRow(self.Config.content, index)
     -- If the row table already exists just make it visible. We are reusing
     -- frames because I have no idea how to remove them.
     else
@@ -90,7 +92,7 @@ function HUDCounter.Currency:Redraw()
       self.Config.rows[index].text:SetVisible(true)
     end
     local currency = AOMRift.Currency:load(key)
-    self.Config.rows[index].icon:SetTexture("Rift", currency.detail.icon)
+    --self.Config.rows[index].icon:SetTexture("Rift", currency.detail.icon)
     self.Config.rows[index].text:SetText(self:makeDescription(currency.id))
     self.Config.rows[index].id = key
     self.Config.rows[index].icon.id = key
@@ -101,6 +103,7 @@ function HUDCounter.Currency:Redraw()
       HUDCounter.Currency:Redraw()
     end
     self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
+    self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.rowHeight)
     index = index + 1
   end
 end
@@ -147,10 +150,10 @@ function HUDCounter.Currency:DrawRow(parentFrame, offset)
   offset = (offset * self.Config.rowHeight)
   local Row = {}
   -- Add our icon
-  position = { width = self.Config.rowHeight, height = self.Config.rowHeight, bottom = (2 + offset), left = 4 }
+  position = { width = self.Config.rowHeight, height = self.Config.rowHeight, top = (2 + offset), left = 4 }
   Row.icon = AOMRift.UI:Content(parentFrame, position, { alpha = 0.75 }, "Texture")
   -- Add our text box.
-  position = { height = self.Config.rowHeight, left = (self.Config.rowHeight + 4), bottom = (2 + offset), right = 2 }
+  position = { height = self.Config.rowHeight, left = (self.Config.rowHeight + 4), top = (2 + offset), right = 2 }
   background = { red = 1, green = 1, blue = 1, alpha = 0.1 }
   Row.text = AOMRift.UI:Content(parentFrame, position, background, "Text")
   Row.text:SetWordwrap(true)
