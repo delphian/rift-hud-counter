@@ -31,7 +31,9 @@ function HUDCounter.Achievement:init(window, content)
   -- row table. The row table will contain an icon and a text description.
   self.Config.rows = {}
   -- Height of each row
-  self.Config.rowHeight = 30
+  self.Config.iconSize = 60
+  -- Font size for description
+  self.Config.fontSize = 14
   -- Debugging.
   self.Config.debug = false
 
@@ -43,21 +45,48 @@ function HUDCounter.Achievement:init(window, content)
 end
 
 --
+-- Display a single row.
+--
+-- Sets the row height, font and image sizes, then switches visible to true.
+--
+-- @param int index
+--   The row index to show.
+--
+function HUDCounter.Achievement:ShowRow(index)
+  local row = self.Config.rows[index]
+  -- If the new row height is greater or lesser then the old then adjust
+  -- container windows.
+  local newHeight = (self.Config.iconSize - row.icon:GetHeight())
+  if (newHeight ~= 0) then
+    self.Config.window:SetHeight(self.Config.window:GetHeight() + newHeight)
+    self.Config.content:SetHeight(self.Config.content:GetHeight() + newHeight)
+  end
+  row.Content:SetHeight(self.Config.iconSize)
+  -- Icon.
+  row.icon:SetWidth(self.Config.iconSize)
+  -- Description field.
+  row.text:SetWidth(row.Content:GetWidth() - row.icon:GetWidth())
+  row.text:SetWordwrap(true)
+  row.text:SetFontSize(self.Config.fontSize)
+  -- Show windows.
+  row.Content:SetVisible(true)
+end
+
+--
 -- Remove and redraw all achievement monitor rows in the HUD window. This will
 -- adjust the height of the window to faciliate achievement rows.
 --
 -- @param Frame window
 --   The frame to adjust and insert achievement monitor rows into.
 --
-function HUDCounter.Achievement:Redraw(window)
+function HUDCounter.Achievement:Redraw()
   -- Initially set all rows to invisible and shrink container window.
   for key, value in ipairs(self.Config.rows) do
     if (self.Config.rows[key].icon:GetVisible() == true) then
-      self.Config.rows[key].icon:SetVisible(false)
-      self.Config.rows[key].text:SetVisible(false)
+      self.Config.rows[key].Content:SetVisible(false)
       self.Config.rows[key].achId = nil
-      self.Config.window:SetHeight(self.Config.window:GetHeight() - self.Config.rowHeight)
-      self.Config.content:SetHeight(self.Config.content:GetHeight() - self.Config.rowHeight)
+      self.Config.window:SetHeight(self.Config.window:GetHeight() - self.Config.iconSize)
+      self.Config.content:SetHeight(self.Config.content:GetHeight() - self.Config.iconSize)
     end
   end
   -- Return right now if HUD Achievements is disabled.
@@ -73,25 +102,19 @@ function HUDCounter.Achievement:Redraw(window)
       HUDCounter.Achievement:Watch(HUDCounter.Achievement.Config.rows[1].achId)
       HUDCounter.Achievement:Redraw()
     end
-  else
-    self.Config.rows[1].icon:SetVisible(true)
-    self.Config.rows[1].text:SetVisible(true)
   end
+  self:ShowRow(1)
   -- Increase the containing window size for the above row.
-  self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
-  self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.rowHeight)
+  self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.iconSize)
+  self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.iconSize)
   -- Setup any rows for achievements that are being specifically watched.
   local index = 2
   for key, value in pairs(self.Config.watch) do
     -- If the row table does not exist then create it.
     if (self.Config.rows[index] == nil) then
       self.Config.rows[index] = self:DrawRow(self.Config.content, index)
-    -- If the row table already exists just make it visible. We are reusing
-    -- frames because I have no idea how to remove them.
-    else
-      self.Config.rows[index].icon:SetVisible(true)
-      self.Config.rows[index].text:SetVisible(true)
     end
+    self:ShowRow(index)
     local achievement = AOMRift.Achievement:load(key)
     self.Config.rows[index].icon:SetTexture("Rift", achievement.detail.icon)
     self.Config.rows[index].text:SetText(self:makeDescription(achievement.id))
@@ -103,8 +126,8 @@ function HUDCounter.Achievement:Redraw(window)
       HUDCounter.Achievement:Watch(self.achId)
       HUDCounter.Achievement:Redraw()
     end
-    self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
-    self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.rowHeight)
+    self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.iconSize)
+    self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.iconSize)
     index = index + 1
   end
 end
@@ -146,19 +169,26 @@ end
 -- @return
 --   (table) The new row which has been created.
 --
-function HUDCounter.Achievement:DrawRow(parentFrame, offset)
-  offset = (offset or 1) - 1
-  offset = (offset * self.Config.rowHeight)
+function HUDCounter.Achievement:DrawRow(parentFrame, index)
+  offset = (index or 1) - 1
+  offset = (offset * self.Config.iconSize)
   local Row = {}
+  position = { height = self.Config.iconSize, top = 0, left = 4, right = 4 }
+  Row.Content = AOMRift.UI:Content(parentFrame, position, {alpha=0})
   -- Add our icon
-  position = { width = self.Config.rowHeight, height = self.Config.rowHeight, top = (2 + offset), left = 4 }
-  Row.icon = AOMRift.UI:Content(parentFrame, position, { alpha = 0.75 }, "Texture")
+  position = { width = self.Config.iconSize, top = 0, bottom = 0, left = 0}
+  Row.icon = AOMRift.UI:Content(Row.Content, position, { alpha = 0.75 }, "Texture")
   -- Add our text box.
-  position = { height = self.Config.rowHeight, left = (self.Config.rowHeight + 4), top = (2 + offset), right = 2 }
-  background = { red = 1, green = 1, blue = 1, alpha = 0.1 }
-  Row.text = AOMRift.UI:Content(parentFrame, position, background, "Text")
+  position = { width = Row.Content:GetWidth() - Row.icon:GetWidth()}
+  Row.text = AOMRift.UI:Content(Row.Content, position, {alpha=0.25}, "Text")
+  -- Attatch text box to right side of icon.
+  AOMRift.UI:Attatch(Row.text, Row.icon, "right")
   Row.text:SetWordwrap(true)
-  Row.text:SetFontSize(10)
+  Row.text:SetFontSize(self.Config.fontSize)
+  -- Attatch to bottom of previous row.
+  if (index > 1) then
+    AOMRift.UI:Attatch(Row.Content, self.Config.rows[index -1].Content, "bottom")
+  end
   return Row
 end
 
@@ -222,6 +252,8 @@ function HUDCounter.Achievement:eventSlash(params)
     print("  List all watched achievement ids. List all achievements watched if no parameter specified.")
     print("/hudach watch {achievement_id}")
     print("  Toggle the watch status of an achievement.")
+    print("/hudach iconSize {new_pixel_iconSize}")
+    print("/hudach fontsize {new_pixel_fontsize}")
     print("/hudach redraw")
     print("  Destroy all achievement rows in the HUD and redraw.")
     print("/hudach debug")
@@ -244,15 +276,21 @@ function HUDCounter.Achievement:eventSlash(params)
     dump(achIds)
   elseif (elements[1] == "redraw") then
     print("Redrawing achievement rows...")
-    self:Redraw(HUDCounter.UI.window)
+    self:Redraw()
   elseif (elements[1] == "enable") then
     self.Config.enable = true
     print("HUD Achievements enabled.")
-    self:Redraw(self.Config.window)
+    self:Redraw()
   elseif (elements[1] == "disable") then
     self.Config.enable = false
     print("HUD Achievements disabled.")
-    self:Redraw(self.Config.window)
+    self:Redraw()
+  elseif (elements[1] == "iconsize") then
+    self.Config.iconSize = tonumber(elements[2])
+    self:Redraw()
+  elseif (elements[1] == "fontsize") then
+    self.Config.fontSize = tonumber(elements[2])
+    self:Redraw()
   end
 end
 

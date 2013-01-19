@@ -31,7 +31,9 @@ function HUDCounter.Currency:init(window, content)
   -- row table. The row table will contain an icon and a text description.
   self.Config.rows = {}
   -- Height of each row
-  self.Config.rowHeight = 30
+  self.Config.iconSize = 60
+  -- Font size for description
+  self.Config.fontSize = 14  
   -- Debugging.
   self.Config.debug = false
 
@@ -43,6 +45,34 @@ function HUDCounter.Currency:init(window, content)
 end
 
 --
+-- Display a single row.
+--
+-- Sets the row height, font and image sizes, then switches visible to true.
+--
+-- @param int index
+--   The row index to show.
+--
+function HUDCounter.Currency:ShowRow(index)
+  local row = self.Config.rows[index]
+  -- If the new row height is greater or lesser then the old then adjust
+  -- container windows.
+  local newHeight = (self.Config.iconSize - row.icon:GetHeight())
+  if (newHeight ~= 0) then
+    self.Config.window:SetHeight(self.Config.window:GetHeight() + newHeight)
+    self.Config.content:SetHeight(self.Config.content:GetHeight() + newHeight)
+  end
+  row.Content:SetHeight(self.Config.iconSize)
+  -- Icon.
+  row.icon:SetWidth(self.Config.iconSize)
+  -- Description field.
+  row.text:SetWidth(row.Content:GetWidth() - row.icon:GetWidth())
+  row.text:SetWordwrap(true)
+  row.text:SetFontSize(self.Config.fontSize)
+  -- Show windows.
+  row.Content:SetVisible(true)
+end
+
+--
 -- Remove and redraw all currency monitor rows in the HUD window. This will
 -- adjust the height of the window to faciliate currency rows.
 --
@@ -50,11 +80,10 @@ function HUDCounter.Currency:Redraw()
   -- Initially set all rows to invisible and shrink container window.
   for key, value in ipairs(self.Config.rows) do
     if (self.Config.rows[key].icon:GetVisible() == true) then
-      self.Config.rows[key].icon:SetVisible(false)
-      self.Config.rows[key].text:SetVisible(false)
+      self.Config.rows[key].Content:SetVisible(false)
       self.Config.rows[key].achId = nil
-      self.Config.window:SetHeight(self.Config.window:GetHeight() - self.Config.rowHeight)
-      self.Config.content:SetHeight(self.Config.content:GetHeight() - self.Config.rowHeight)
+      self.Config.window:SetHeight(self.Config.window:GetHeight() - self.Config.iconSize)
+      self.Config.content:SetHeight(self.Config.content:GetHeight() - self.Config.iconSize)
     end
   end
   -- Return right now if HUD Currencies is disabled.
@@ -73,12 +102,10 @@ function HUDCounter.Currency:Redraw()
       HUDCounter.Currency:Watch(HUDCounter.Currency.Config.rows[1].id)
       HUDCounter.Currency:Redraw()
     end
-  else
-    self.Config.rows[1].icon:SetVisible(true)
-    self.Config.rows[1].text:SetVisible(true)
   end
-  self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
-  self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.rowHeight)
+  self:ShowRow(1)
+  self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.iconSize)
+  self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.iconSize)
   -- Setup any rows for currencies that are being specifically watched.
   local index = 2
   for key, value in pairs(self.Config.watch) do
@@ -87,10 +114,8 @@ function HUDCounter.Currency:Redraw()
       self.Config.rows[index] = self:DrawRow(self.Config.content, index)
     -- If the row table already exists just make it visible. We are reusing
     -- frames because I have no idea how to remove them.
-    else
-      self.Config.rows[index].icon:SetVisible(true)
-      self.Config.rows[index].text:SetVisible(true)
     end
+    self:ShowRow(index)
     local currency = AOMRift.Currency:load(key)
     --self.Config.rows[index].icon:SetTexture("Rift", currency.detail.icon)
     self.Config.rows[index].text:SetText(self:makeDescription(currency.id))
@@ -102,8 +127,8 @@ function HUDCounter.Currency:Redraw()
       HUDCounter.Currency:Watch(self.id)
       HUDCounter.Currency:Redraw()
     end
-    self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
-    self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.rowHeight)
+    self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.iconSize)
+    self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.iconSize)
     index = index + 1
   end
 end
@@ -129,11 +154,11 @@ function HUDCounter.Currency:FindRow(id)
 end
 
 --
--- Insert a single currency row into a parent Frame.
+-- Insert a single achievement row into a parent Frame.
 --
--- A currency row is a table which contains 2 frames. The first frame is a
--- texture and will be used to hold the currency icon. The second frame is
--- a text and will contain the currency description.
+-- An achievement row is a table which contains 2 frames. The first frame is a
+-- texture and will be used to hold the achievement icon. The second frame is
+-- a text and will contain the achievement description and requirements.
 --
 -- @param Frame parentFrame
 --   The parent frame for which the icon and text frame will be attatched.
@@ -145,19 +170,26 @@ end
 -- @return
 --   (table) The new row which has been created.
 --
-function HUDCounter.Currency:DrawRow(parentFrame, offset)
-  offset = (offset or 1) - 1
-  offset = (offset * self.Config.rowHeight)
+function HUDCounter.Currency:DrawRow(parentFrame, index)
+  offset = (index or 1) - 1
+  offset = (offset * self.Config.iconSize)
   local Row = {}
+  position = { height = self.Config.iconSize, top = 0, left = 4, right = 4 }
+  Row.Content = AOMRift.UI:Content(parentFrame, position, {alpha=0})
   -- Add our icon
-  position = { width = self.Config.rowHeight, height = self.Config.rowHeight, top = (2 + offset), left = 4 }
-  Row.icon = AOMRift.UI:Content(parentFrame, position, { alpha = 0.75 }, "Texture")
+  position = { width = self.Config.iconSize, top = 0, bottom = 0, left = 0}
+  Row.icon = AOMRift.UI:Content(Row.Content, position, { alpha = 0.75 }, "Texture")
   -- Add our text box.
-  position = { height = self.Config.rowHeight, left = (self.Config.rowHeight + 4), top = (2 + offset), right = 2 }
-  background = { red = 1, green = 1, blue = 1, alpha = 0.1 }
-  Row.text = AOMRift.UI:Content(parentFrame, position, background, "Text")
+  position = { width = Row.Content:GetWidth() - Row.icon:GetWidth()}
+  Row.text = AOMRift.UI:Content(Row.Content, position, {alpha=0.25}, "Text")
+  -- Attatch text box to right side of icon.
+  AOMRift.UI:Attatch(Row.text, Row.icon, "right")
   Row.text:SetWordwrap(true)
-  Row.text:SetFontSize(10)
+  Row.text:SetFontSize(self.Config.fontSize)
+  -- Attatch to bottom of previous row.
+  if (index > 1) then
+    AOMRift.UI:Attatch(Row.Content, self.Config.rows[index -1].Content, "bottom")
+  end
   return Row
 end
 
@@ -272,6 +304,12 @@ function HUDCounter.Currency:EventSlash(params)
     end
   elseif (elements[1] == "icon") then
     self.Config.rows[1].icon.SetTexture("Rift", elements[2])
+  elseif (elements[1] == "iconsize") then
+    self.Config.iconSize = tonumber(elements[2])
+    self:Redraw()
+  elseif (elements[1] == "fontsize") then
+    self.Config.fontSize = tonumber(elements[2])
+    self:Redraw()
   end
 end
 
