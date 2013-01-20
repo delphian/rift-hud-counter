@@ -336,8 +336,8 @@ function HUDCounter.Currency:Print(currency_id)
     Row.icon:SetTexture("Rift", currency.icon)
   end
   Row.text:SetText(self:makeDescription(currency.id))
-  Row.icon:SetAlpha(0.75)
-  Row.text:SetAlpha(0.75)
+  Row.icon:SetAlpha(1)
+  Row.text:SetAlpha(1)
   Row.time = Inspect.Time.Real()
   Row.id = currency.id
 end

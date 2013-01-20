@@ -336,8 +336,8 @@ function HUDCounter.Achievement:eventUpdate(achievements)
       Row.time = Inspect.Time.Real()
       Row.icon:SetTexture("Rift", achievement.detail.icon)
       Row.text:SetText(self:makeDescription(achievement.id))
-      Row.icon:SetAlpha(0.75)
-      Row.text:SetAlpha(0.75)
+      Row.icon:SetAlpha(1)
+      Row.text:SetAlpha(1)
       Row.achId = achievement.id
     end
   end
