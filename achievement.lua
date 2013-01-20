@@ -42,6 +42,7 @@ function HUDCounter.Achievement:init(window, content)
   -- Register callbacks.
   table.insert(Command.Slash.Register("hudach"), {HUDCounter.Achievement.Event.Slash, "HUDCounter", "Slash Command"})
   table.insert(Event.Achievement.Update, {HUDCounter.Achievement.Event.Update, "HUDCounter", "Handle Achievement Update"})
+  table.insert(Event.System.Update.Begin, {HUDCounter.Achievement.Event.SystemUpdateBegin, "HUDCounter", "Handle Timer"})
 end
 
 --
@@ -189,6 +190,7 @@ function HUDCounter.Achievement:DrawRow(parentFrame, index)
   if (index > 1) then
     AOMRift.UI:Attatch(Row.Content, self.Config.rows[index -1].Content, "bottom")
   end
+  Row.time = Inspect.Time.Real()  
   return Row
 end
 
@@ -331,8 +333,11 @@ function HUDCounter.Achievement:eventUpdate(achievements)
         print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
       end
       -- Output the achievement information.
+      Row.time = Inspect.Time.Real()
       Row.icon:SetTexture("Rift", achievement.detail.icon)
       Row.text:SetText(self:makeDescription(achievement.id))
+      Row.icon:SetAlpha(0.75)
+      Row.text:SetAlpha(0.75)
       Row.achId = achievement.id
     end
   end
@@ -362,6 +367,30 @@ function HUDCounter.Achievement:makeDescription(achId)
     achText = achText .. req.name .. " (" .. req.done .. "/" .. req.total .. ")"
   end
   return achText  
+end
+
+--
+-- Callback for System.Update.Begin
+--
+-- Fades an achievement row if it has been displayed long enough.
+--
+-- @see HUDCounter.Achievement.Event.SystemUpdateBegin()
+--
+function HUDCounter.Achievement:EventSystemUpdateBegin()
+  local currentTime = Inspect.Time.Real()
+  for key, Row in pairs(self.Config.rows) do
+    if (currentTime > (Row.time + 5)) then
+      Row.icon:SetAlpha(0.25)
+      Row.text:SetAlpha(0.25)
+    end
+  end  
+end
+
+--
+-- Callback for System.Update.Begin
+--
+function HUDCounter.Achievement.Event.SystemUpdateBegin()
+  HUDCounter.Achievement:EventSystemUpdateBegin()
 end
 
 --

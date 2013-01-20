@@ -42,6 +42,7 @@ function HUDCounter.Currency:init(window, content)
   -- Register callbacks.
   table.insert(Command.Slash.Register("hudcur"), {HUDCounter.Currency.Event.Slash, "HUDCounter", "Slash Command"})
   table.insert(Event.Currency, {HUDCounter.Currency.Event.Update, "HUDCounter", "Handle Currency Update"})
+  table.insert(Event.System.Update.Begin, {HUDCounter.Currency.Event.SystemUpdateBegin, "HUDCounter", "Handle Timer"})
 end
 
 --
@@ -190,6 +191,7 @@ function HUDCounter.Currency:DrawRow(parentFrame, index)
   if (index > 1) then
     AOMRift.UI:Attatch(Row.Content, self.Config.rows[index -1].Content, "bottom")
   end
+  Row.time = Inspect.Time.Real()  
   return Row
 end
 
@@ -334,6 +336,9 @@ function HUDCounter.Currency:Print(currency_id)
     Row.icon:SetTexture("Rift", currency.icon)
   end
   Row.text:SetText(self:makeDescription(currency.id))
+  Row.icon:SetAlpha(0.75)
+  Row.text:SetAlpha(0.75)
+  Row.time = Inspect.Time.Real()
   Row.id = currency.id
 end
 
@@ -372,6 +377,30 @@ function HUDCounter.Currency:makeDescription(id)
   end
   local curText = currency.name .. ": " .. currency.value
   return curText  
+end
+
+--
+-- Callback for System.Update.Begin
+--
+-- Fades a currency row if it has been displayed long enough.
+--
+-- @see HUDCounter.Currency.Event.SystemUpdateBegin()
+--
+function HUDCounter.Currency:EventSystemUpdateBegin()
+  local currentTime = Inspect.Time.Real()
+  for key, Row in pairs(self.Config.rows) do
+    if (currentTime > (Row.time + 5)) then
+      Row.icon:SetAlpha(0.25)
+      Row.text:SetAlpha(0.25)
+    end
+  end  
+end
+
+--
+-- Callback for System.Update.Begin
+--
+function HUDCounter.Currency.Event.SystemUpdateBegin()
+  HUDCounter.Currency:EventSystemUpdateBegin()
 end
 
 --
