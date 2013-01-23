@@ -216,6 +216,27 @@ function HUDCounter.Achievement:Ignore(ach_id)
 end
 
 --
+-- Add or remove an achievement id from display queue. If the id already exists
+-- then it will be removed.
+--
+-- @param string ach_id
+--   The achievement id to remove or add.
+--
+-- @return
+--   (table) A key/value pair of currently queued ids after the operation.
+--
+function HUDCounter.Achievement:Queue(ach_id)
+  if (ach_id ~= nil) then
+    if (self.Config.queue[ach_id] ~= nil) then
+      self.Config.queue[ach_id] = nil
+    else
+      self.Config.queue[ach_id] = ach_id
+    end
+  end
+  return self.Config.queue
+end
+
+--
 -- Add or remove an achievement id from watch list. If the id already exists
 -- then it will be removed.
 --
@@ -314,31 +335,32 @@ function HUDCounter.Achievement:eventUpdate(achievements)
     print("========================================")
   end
   for achievement_key, v in pairs(achievements) do
-    -- Place a cap on how many achievements we will do. The rest get ignored, sorry.
-    if (maxcount >= 1) then
-      break;
-    end
     local achievement = AOMRift.Achievement:load(achievement_key)
+    -- Place a cap on how many achievements we will do. The rest get ignored, sorry.
     if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
-      maxcount = maxcount + 1
-      -- If we are watching this achievement send it to the correct achievement
-      -- row in the HUD, otherwise default to the bottom most row.
-      local Row = self:FindRow(achievement.id)
-      if (Row == nil) then
-        Row = self.Config.rows[1]
+      if (maxcount >= 1) then
+        self:Queue(achievement_key)
+      else
+        maxcount = maxcount + 1
+        -- If we are watching this achievement send it to the correct achievement
+        -- row in the HUD, otherwise default to the bottom most row.
+        local Row = self:FindRow(achievement.id)
+        if (Row == nil) then
+          Row = self.Config.rows[1]
+        end
+        -- Debug output.
+        if (self.Config.debug == true) then
+          print("----------------------------------------")
+          print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
+        end
+        -- Output the achievement information.
+        Row.time = Inspect.Time.Real()
+        Row.icon:SetTexture("Rift", achievement.detail.icon)
+        Row.text:SetText(self:makeDescription(achievement.id))
+        Row.icon:SetAlpha(1)
+        Row.text:SetAlpha(1)
+        Row.achId = achievement.id
       end
-      -- Debug output.
-      if (self.Config.debug == true) then
-        print("----------------------------------------")
-        print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
-      end
-      -- Output the achievement information.
-      Row.time = Inspect.Time.Real()
-      Row.icon:SetTexture("Rift", achievement.detail.icon)
-      Row.text:SetText(self:makeDescription(achievement.id))
-      Row.icon:SetAlpha(1)
-      Row.text:SetAlpha(1)
-      Row.achId = achievement.id
     end
   end
 end
@@ -382,6 +404,24 @@ function HUDCounter.Achievement:EventSystemUpdateBegin()
     if (currentTime > (Row.time + 5)) then
       Row.icon:SetAlpha(0.25)
       Row.text:SetAlpha(0.25)
+      -- Print a new achievement if one is in the queue.
+      if (key == 1) then
+        for key, ach_id in pairs(self.Config.queue) do
+          local achievement = AOMRift.Achievement:load(ach_id)          
+          local Row = self:FindRow(achievement.id)
+          if (Row == nil) then
+            Row = self.Config.rows[1]
+          end
+          Row.time = Inspect.Time.Real()
+          Row.icon:SetTexture("Rift", achievement.detail.icon)
+          Row.text:SetText(self:makeDescription(achievement.id))
+          Row.icon:SetAlpha(1)
+          Row.text:SetAlpha(1)
+          Row.achId = achievement.id
+          self:Queue(ach_id)
+          break
+        end
+      end
     end
   end  
 end
