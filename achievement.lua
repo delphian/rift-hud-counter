@@ -44,6 +44,7 @@ function HUDCounter.Achievement:init(window, content)
   table.insert(Event.Achievement.Update, {HUDCounter.Achievement.Event.Update, "HUDCounter", "Handle Achievement Update"})
   table.insert(Event.Item.Update, {HUDCounter.Achievement.Event.ItemUpdate, "HUDCounter", "Handle Item Updates"})
   table.insert(Event.System.Update.Begin, {HUDCounter.Achievement.Event.SystemUpdateBegin, "HUDCounter", "Handle Timer"})
+  table.insert(Event.Currency, {HUDCounter.Achievement.Event.Currency, "HUDCounter", "Handle Currency Update"})
 end
 
 --
@@ -383,11 +384,16 @@ end
 --
 function HUDCounter.Achievement:IdType(id)
   local idType = nil
-  if (string.sub(id, 1, 1) == "i") then
+  if (id == "coin") then
+    idType = "coin"
+  elseif (string.sub(id, 1, 1) == "i") then
     idType = "item"
   elseif (string.sub(id, 1, 1) == "c") then
     idType = "achievement"
   end
+  if (self.Config.debug == true) then
+    print(id .. " is " .. (idType or "nil"))
+  end    
   return idType
 end
 
@@ -405,6 +411,9 @@ function HUDCounter.Achievement:Print(id)
   elseif (self:IdType(id) == "achievement") then
     object = AOMRift.Achievement:load(id)
     description = self:makeDescription(id)
+  elseif ((self:IdType(id) == "currency") or (self:IdType(id) == "coin")) then
+    object = AOMRift.Currency:load(id)
+    description = object.name .. " (" .. object.value .. ")"
   end
   if (self.Config.debug == true) then
     print("----------------------------------------")
@@ -477,6 +486,15 @@ function HUDCounter.Achievement.Event.ItemUpdate(params)
     local item = AOMRift.Item:Load(item_id)
     if (item ~= nil) then
       HUDCounter.Achievement:Queue(item_id)
+    end
+  end
+end
+
+function HUDCounter.Achievement.Event.Currency(params)
+  for currency_id, value in pairs(params) do
+    local currency = AOMRift.Currency:load(currency_id)
+    if (currency ~= nil) then
+      HUDCounter.Achievement:Queue(currency_id)
     end
   end
 end
