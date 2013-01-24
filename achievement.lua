@@ -101,11 +101,12 @@ function HUDCounter.Achievement:Redraw()
     self.Config.rows[1] = self:DrawRow(self.Config.content, 1)
     bugFix = self.Config.rows[1].icon
     function bugFix.Event:LeftClick()
+      print("Got it")
       HUDCounter.Achievement:Watch(HUDCounter.Achievement.Config.rows[1].achId)
       HUDCounter.Achievement:Redraw()
     end
   end
-  self:ShowRow(1)
+  self:ShowRow(1, nil)
   -- Increase the containing window size for the above row.
   self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.iconSize)
   self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.iconSize)
@@ -117,13 +118,11 @@ function HUDCounter.Achievement:Redraw()
       self.Config.rows[index] = self:DrawRow(self.Config.content, index)
     end
     self:ShowRow(index)
-    local achievement = AOMRift.Achievement:load(key)
-    self.Config.rows[index].icon:SetTexture("Rift", achievement.detail.icon)
-    self.Config.rows[index].text:SetText(self:makeDescription(achievement.id))
     self.Config.rows[index].achId = key
-    self.Config.rows[index].icon.achId = key
+    self:Print(key)
     -- Attatch a click handler.
     bugFix = self.Config.rows[index].icon
+    bugFix.achId = HUDCounter.Achievement.Config.rows[index].achId
     function bugFix.Event:LeftClick()
       HUDCounter.Achievement:Watch(self.achId)
       HUDCounter.Achievement:Redraw()
@@ -226,17 +225,12 @@ end
 -- @return
 --   (table) A key/value pair of currently queued ids after the operation.
 --
-function HUDCounter.Achievement:Queue(id, type, icon, description)
+function HUDCounter.Achievement:Queue(id)
   if (id ~= nil) then
     if (self.Config.queue[id] ~= nil) then
       self.Config.queue[id] = nil
     else
-      self.Config.queue[id] = {
-        type = type,
-        id = id,
-        icon = icon,
-        description = description,
-      }
+      self.Config.queue[id] = id
     end
   end
   return self.Config.queue
@@ -324,6 +318,8 @@ function HUDCounter.Achievement:eventSlash(params)
   elseif (elements[1] == "fontsize") then
     self.Config.fontSize = tonumber(elements[2])
     self:Redraw()
+  elseif (elements[1] == "rows") then
+    PHP.print_r(self.Config.rows)
   end
 end
 
@@ -341,35 +337,16 @@ function HUDCounter.Achievement:eventUpdate(achievements)
   end
   -- Count each achievement. Limit maximum processed.
   local maxcount = 0
-  if (self.Config.debug == true) then
-    print("========================================")
-  end
   for achievement_key, v in pairs(achievements) do
     local achievement = AOMRift.Achievement:load(achievement_key)
     -- Place a cap on how many achievements we will do. The rest get ignored, sorry.
     if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
       if (maxcount >= 1) then
-        self:Queue(achievement.id, "achievement", achievement.detail.icon, achievement.description)
+        self:Queue(achievement.id)
       else
         maxcount = maxcount + 1
-        -- If we are watching this achievement send it to the correct achievement
-        -- row in the HUD, otherwise default to the bottom most row.
-        local Row = self:FindRow(achievement.id)
-        if (Row == nil) then
-          Row = self.Config.rows[1]
-        end
-        -- Debug output.
-        if (self.Config.debug == true) then
-          print("----------------------------------------")
-          print(AOMLua:print_r(achievement, "Achievement " .. achievement.id))
-        end
         -- Output the achievement information.
-        Row.time = Inspect.Time.Real()
-        Row.icon:SetTexture("Rift", achievement.detail.icon)
-        Row.text:SetText(self:makeDescription(achievement.id))
-        Row.icon:SetAlpha(1)
-        Row.text:SetAlpha(1)
-        Row.achId = achievement.id
+        self:Print(achievement.id)
       end
     end
   end
@@ -402,22 +379,45 @@ function HUDCounter.Achievement:makeDescription(achId)
 end
 
 --
+-- Determine the type based on an id number.
+--
+function HUDCounter.Achievement:IdType(id)
+  local idType = nil
+  if (string.sub(id, 1, 1) == "i") then
+    idType = "item"
+  elseif (string.sub(id, 1, 1) == "c") then
+    idType = "achievement"
+  end
+  return idType
+end
+
+--
 -- Print to one of our rows.
 --
--- @param table data
---   A table containing at least:
---     - id: The id of this data.
---     - icon: Icon to display.
---     - description: Description to print.
+-- @param string|int id
 --
-function HUDCounter.Achievement:Print(data)
-  local row = self:FindRow(data.id)
+function HUDCounter.Achievement:Print(id)
+  local object = nil
+  local description = nil
+  if (self:IdType(id) == "item") then
+    object = AOMRift.Item:Load(id);
+    description = object.name .. " (" .. object.value .. ")"
+  elseif (self:IdType(id) == "achievement") then
+    object = AOMRift.Achievement:load(id)
+    description = self:makeDescription(id)
+  end
+  if (self.Config.debug == true) then
+    print("----------------------------------------")
+    PHP.print_r(object)
+  end
+
+  local row = self:FindRow(id)
   if (row == nil) then
     row = self.Config.rows[1]
   end
   row.time = Inspect.Time.Real()
-  row.icon:SetTexture("Rift", data.icon)
-  row.text:SetText(data.description)
+  row.icon:SetTexture("Rift", object.icon)
+  row.text:SetText(description)
   row.icon:SetAlpha(1)
   row.text:SetAlpha(1)
   row.achId = id
@@ -475,6 +475,8 @@ end
 function HUDCounter.Achievement.Event.ItemUpdate(params)
   for key, item_id in pairs(params) do
     local item = AOMRift.Item:Load(item_id)
-    HUDCounter.Achievement:Queue(item_id, "item", item.icon, item.description)
+    if (item ~= nil) then
+      HUDCounter.Achievement:Queue(item_id)
+    end
   end
 end
