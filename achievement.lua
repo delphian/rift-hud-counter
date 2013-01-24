@@ -42,6 +42,7 @@ function HUDCounter.Achievement:init(window, content)
   -- Register callbacks.
   table.insert(Command.Slash.Register("hudach"), {HUDCounter.Achievement.Event.Slash, "HUDCounter", "Slash Command"})
   table.insert(Event.Achievement.Update, {HUDCounter.Achievement.Event.Update, "HUDCounter", "Handle Achievement Update"})
+  table.insert(Event.Item.Update, {HUDCounter.Achievement.Event.ItemUpdate, "HUDCounter", "Handle Item Updates"})
   table.insert(Event.System.Update.Begin, {HUDCounter.Achievement.Event.SystemUpdateBegin, "HUDCounter", "Handle Timer"})
 end
 
@@ -225,12 +226,17 @@ end
 -- @return
 --   (table) A key/value pair of currently queued ids after the operation.
 --
-function HUDCounter.Achievement:Queue(ach_id)
-  if (ach_id ~= nil) then
-    if (self.Config.queue[ach_id] ~= nil) then
-      self.Config.queue[ach_id] = nil
+function HUDCounter.Achievement:Queue(id, type, icon, description)
+  if (id ~= nil) then
+    if (self.Config.queue[id] ~= nil) then
+      self.Config.queue[id] = nil
     else
-      self.Config.queue[ach_id] = ach_id
+      self.Config.queue[id] = {
+        type = type,
+        id = id,
+        icon = icon,
+        description = description,
+      }
     end
   end
   return self.Config.queue
@@ -273,6 +279,7 @@ function HUDCounter.Achievement:eventSlash(params)
     print("  Toggle the ignore status of an achievement. List all achievements ignored if no parameter specified.")
     print("/hudach watch")
     print("  List all watched achievement ids. List all achievements watched if no parameter specified.")
+    print("/hudach queue")
     print("/hudach watch {achievement_id}")
     print("  Toggle the watch status of an achievement.")
     print("/hudach iconSize {new_pixel_iconSize}")
@@ -297,6 +304,9 @@ function HUDCounter.Achievement:eventSlash(params)
   elseif (elements[1] == "watch") then
     achIds = HUDCounter.Achievement:Watch(elements[2])
     dump(achIds)
+  elseif (elements[1] == "queue") then
+    achIds = HUDCounter.Achievement:Queue()
+    PHP.print_r(achIds)
   elseif (elements[1] == "redraw") then
     print("Redrawing achievement rows...")
     self:Redraw()
@@ -339,7 +349,7 @@ function HUDCounter.Achievement:eventUpdate(achievements)
     -- Place a cap on how many achievements we will do. The rest get ignored, sorry.
     if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
       if (maxcount >= 1) then
-        self:Queue(achievement_key)
+        self:Queue(achievement.id, "achievement", achievement.detail.icon, achievement.description)
       else
         maxcount = maxcount + 1
         -- If we are watching this achievement send it to the correct achievement
@@ -392,6 +402,28 @@ function HUDCounter.Achievement:makeDescription(achId)
 end
 
 --
+-- Print to one of our rows.
+--
+-- @param table data
+--   A table containing at least:
+--     - id: The id of this data.
+--     - icon: Icon to display.
+--     - description: Description to print.
+--
+function HUDCounter.Achievement:Print(data)
+  local row = self:FindRow(data.id)
+  if (row == nil) then
+    row = self.Config.rows[1]
+  end
+  row.time = Inspect.Time.Real()
+  row.icon:SetTexture("Rift", data.icon)
+  row.text:SetText(data.description)
+  row.icon:SetAlpha(1)
+  row.text:SetAlpha(1)
+  row.achId = id
+end
+
+--
 -- Callback for System.Update.Begin
 --
 -- Fades an achievement row if it has been displayed long enough.
@@ -401,24 +433,17 @@ end
 function HUDCounter.Achievement:EventSystemUpdateBegin()
   local currentTime = Inspect.Time.Real()
   for key, Row in pairs(self.Config.rows) do
-    if (currentTime > (Row.time + 5)) then
-      Row.icon:SetAlpha(0.25)
-      Row.text:SetAlpha(0.25)
+    local currentAlpha = Row.icon:GetAlpha()
+    if (currentAlpha > 0.25) then
+      Row.icon:SetAlpha(currentAlpha - 0.01)
+      Row.text:SetAlpha(currentAlpha - 0.01)
+    end
+    if (currentTime > (Row.time + 4)) then
       -- Print a new achievement if one is in the queue.
       if (key == 1) then
-        for key, ach_id in pairs(self.Config.queue) do
-          local achievement = AOMRift.Achievement:load(ach_id)          
-          local Row = self:FindRow(achievement.id)
-          if (Row == nil) then
-            Row = self.Config.rows[1]
-          end
-          Row.time = Inspect.Time.Real()
-          Row.icon:SetTexture("Rift", achievement.detail.icon)
-          Row.text:SetText(self:makeDescription(achievement.id))
-          Row.icon:SetAlpha(1)
-          Row.text:SetAlpha(1)
-          Row.achId = achievement.id
-          self:Queue(ach_id)
+        for id, data in pairs(self.Config.queue) do
+          self:Print(data)
+          self:Queue(id)
           break
         end
       end
@@ -445,4 +470,11 @@ end
 --
 function HUDCounter.Achievement.Event.Slash(params)
   HUDCounter.Achievement:eventSlash(params)
+end
+
+function HUDCounter.Achievement.Event.ItemUpdate(params)
+  for key, item_id in pairs(params) do
+    local item = AOMRift.Item:Load(item_id)
+    HUDCounter.Achievement:Queue(item_id, "item", item.icon, item.description)
+  end
 end
