@@ -325,35 +325,6 @@ function HUDCounter.Achievement:eventSlash(params)
 end
 
 --
--- Callback for Event.Achievement.Update
---
--- Inform the player that they just performed an action that increased their
--- progress in an achievement.
---
--- @see HUDCounter.Achievement.Event.Update()
---
-function HUDCounter.Achievement:eventUpdate(achievements)
-  if (self.Config.enable == false) then
-    return
-  end
-  -- Count each achievement. Limit maximum processed.
-  local maxcount = 0
-  for achievement_key, v in pairs(achievements) do
-    local achievement = AOMRift.Achievement:load(achievement_key)
-    -- Place a cap on how many achievements we will do. The rest get ignored, sorry.
-    if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
-      if (maxcount >= 1) then
-        self:Queue(achievement.id)
-      else
-        maxcount = maxcount + 1
-        -- Output the achievement information.
-        self:Print(achievement.id)
-      end
-    end
-  end
-end
-
---
 -- Construct description text for achievement update.
 --
 -- @param string achId
@@ -468,17 +439,25 @@ function HUDCounter.Achievement.Event.SystemUpdateBegin()
 end
 
 --
--- Callback for Event.Achievement.Update
---
-function HUDCounter.Achievement.Event.Update(achievements)
-  HUDCounter.Achievement:eventUpdate(achievements)
-end
-
---
 -- Callback for Command.Slash.Register("hudach")
 --
 function HUDCounter.Achievement.Event.Slash(params)
   HUDCounter.Achievement:eventSlash(params)
+end
+
+--
+-- Callback for Event.Achievement.Update
+--
+function HUDCounter.Achievement.Event.Update(achievements)
+  if (HUDCounter.Achievement.Config.enable == false) then
+    return
+  end
+  for achievement_key, v in pairs(achievements) do
+    local achievement = AOMRift.Achievement:load(achievement_key)
+    if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
+      HUDCounter.Achievement:Queue(achievement.id)
+    end
+  end
 end
 
 function HUDCounter.Achievement.Event.ItemUpdate(params)
