@@ -323,6 +323,7 @@ function HUDCounter.Achievement:eventSlash(params)
     self:Redraw()
   elseif (elements[1] == "rows") then
     PHP.print_r(self.Config.rows)
+    PHP.print_r(Event)
   elseif (elements[1] == "winheight") then
     if (elements[2] ~= nil) then
       self.Config.window:SetHeight(tonumber(elements[2]))
