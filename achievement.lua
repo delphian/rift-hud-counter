@@ -85,7 +85,7 @@ end
 function HUDCounter.Achievement:Redraw()
   -- Initially set all rows to invisible and shrink container window.
   for key, value in ipairs(self.Config.rows) do
-    if (self.Config.rows[key].icon:GetVisible() == true) then
+    if (self.Config.rows[key].Content:GetVisible() == true) then
       self.Config.rows[key].Content:SetVisible(false)
       self.Config.rows[key].achId = nil
       self.Config.window:SetHeight(self.Config.window:GetHeight() - self.Config.iconSize)
@@ -107,7 +107,7 @@ function HUDCounter.Achievement:Redraw()
       HUDCounter.Achievement:Redraw()
     end
   end
-  self:ShowRow(1, nil)
+  self:ShowRow(1)
   -- Increase the containing window size for the above row.
   self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.iconSize)
   self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.iconSize)
@@ -275,6 +275,8 @@ function HUDCounter.Achievement:eventSlash(params)
     print("/hudach watch")
     print("  List all watched achievement ids. List all achievements watched if no parameter specified.")
     print("/hudach queue")
+    print("/hudach rows")
+    print("/hudach winheight {height_in_pixels}")
     print("/hudach watch {achievement_id}")
     print("  Toggle the watch status of an achievement.")
     print("/hudach iconSize {new_pixel_iconSize}")
@@ -321,6 +323,12 @@ function HUDCounter.Achievement:eventSlash(params)
     self:Redraw()
   elseif (elements[1] == "rows") then
     PHP.print_r(self.Config.rows)
+  elseif (elements[1] == "winheight") then
+    if (elements[2] ~= nil) then
+      self.Config.window:SetHeight(tonumber(elements[2]))
+      self.Config.content:SetHeight(tonumber(elements[2]))
+    end
+    print(self.Config.window:GetHeight())
   end
 end
 
@@ -391,16 +399,20 @@ function HUDCounter.Achievement:Print(id)
     PHP.print_r(object)
   end
 
-  local row = self:FindRow(id)
-  if (row == nil) then
-    row = self.Config.rows[1]
+  if (object ~= nil) then
+    local row = self:FindRow(id)
+    if (row == nil) then
+      row = self.Config.rows[1]
+    end
+    row.time = Inspect.Time.Real()
+    row.icon:SetTexture("Rift", object.icon)
+    row.text:SetText(description)
+    row.icon:SetAlpha(1)
+    row.text:SetAlpha(1)
+    row.achId = id
+  else
+    print("Unknown id: " .. id)
   end
-  row.time = Inspect.Time.Real()
-  row.icon:SetTexture("Rift", object.icon)
-  row.text:SetText(description)
-  row.icon:SetAlpha(1)
-  row.text:SetAlpha(1)
-  row.achId = id
 end
 
 --
@@ -422,8 +434,8 @@ function HUDCounter.Achievement:EventSystemUpdateBegin()
       -- Print a new achievement if one is in the queue.
       if (key == 1) then
         for id, data in pairs(self.Config.queue) do
-          self:Print(data)
           self:Queue(id)
+          self:Print(data)
           break
         end
       end
