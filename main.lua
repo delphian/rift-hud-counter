@@ -95,14 +95,6 @@ function HUDCounter.UI:init()
     { top = (8 + (HUDCounter.Experience.fontSize * self.lines)), left = 0, right = 0, height = 1 },
     { alpha = 0 }, "Frame"
   )
-  self.window.currency = AOMRift.UI:Content(self.window.content, 
-    { top = 0, bottom = 0, left = 0, right = 0, height = 1 },
-    { alpha = 0 }, "Frame"
-  )
-  AOMRift.UI:Attatch(self.window.currency, self.window.achievement, "bottom")
-  function self.window.content.Event:LeftClick()
-    print("Got it!")
-  end
 
   self.text.name = UI.CreateFrame("Text", "Currency", self.window.content) 
   self.text.name:SetPoint("TOPLEFT", self.window.content, "TOPLEFT", 2, 2)

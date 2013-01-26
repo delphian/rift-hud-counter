@@ -34,6 +34,8 @@ function HUDCounter.Achievement:init(window, content)
   self.Config.iconSize = 60
   -- Font size for description
   self.Config.fontSize = 14
+  -- Size of rows.
+  self.Config.rowWidth = 300
   -- Debugging.
   self.Config.debug = false
 
@@ -45,6 +47,7 @@ function HUDCounter.Achievement:init(window, content)
   table.insert(Event.Item.Update, {HUDCounter.Achievement.Event.ItemUpdate, "HUDCounter", "Handle Item Updates"})
   table.insert(Event.System.Update.Begin, {HUDCounter.Achievement.Event.SystemUpdateBegin, "HUDCounter", "Handle Timer"})
   table.insert(Event.Currency, {HUDCounter.Achievement.Event.Currency, "HUDCounter", "Handle Currency Update"})
+  table.insert(Event.Item.Slot, {HUDCounter.Achievement.Event.ItemSlot, "HUDCounter", "Handle Item Slot Updates"})
 end
 
 --
@@ -68,7 +71,7 @@ function HUDCounter.Achievement:ShowRow(index)
   -- Icon.
   row.icon:SetWidth(self.Config.iconSize)
   -- Description field.
-  row.text:SetWidth(row.Content:GetWidth() - row.icon:GetWidth())
+  --row.text:SetWidth(row.Content:GetWidth() - row.icon:GetWidth())
   row.text:SetWordwrap(true)
   row.text:SetFontSize(self.Config.fontSize)
   -- Show windows.
@@ -176,15 +179,15 @@ function HUDCounter.Achievement:DrawRow(parentFrame, index)
   offset = (offset * self.Config.iconSize)
   local Row = {}
   position = { height = self.Config.iconSize, top = 0, left = 4, right = 4 }
-  Row.Content = AOMRift.UI:Content(parentFrame, position, {alpha=0})
+  Row.Content = AOMRift.UI:Content(parentFrame, position, {alpha=0.25})
   -- Add our icon
   position = { width = self.Config.iconSize, top = 0, bottom = 0, left = 0}
-  Row.icon = AOMRift.UI:Content(Row.Content, position, { alpha = 0.75 }, "Texture")
+  Row.icon = AOMRift.UI:Content(Row.Content, position, { alpha = 1 }, "Texture")
   -- Add our text box.
-  position = { width = Row.Content:GetWidth() - Row.icon:GetWidth()}
+  position = { left = Row.icon:GetWidth(), right = 4, top = 0, bottom = 0 }
   Row.text = AOMRift.UI:Content(Row.Content, position, {alpha=0.25}, "Text")
   -- Attatch text box to right side of icon.
-  AOMRift.UI:Attatch(Row.text, Row.icon, "right")
+  --AOMRift.UI:Attatch(Row.text, Row.icon, "right")
   Row.text:SetWordwrap(true)
   Row.text:SetFontSize(self.Config.fontSize)
   -- Attatch to bottom of previous row.
@@ -277,6 +280,7 @@ function HUDCounter.Achievement:eventSlash(params)
     print("/hudach queue")
     print("/hudach rows")
     print("/hudach winheight {height_in_pixels}")
+    print("/hudach winwidth {width_in_pixels}")
     print("/hudach watch {achievement_id}")
     print("  Toggle the watch status of an achievement.")
     print("/hudach iconSize {new_pixel_iconSize}")
@@ -328,6 +332,12 @@ function HUDCounter.Achievement:eventSlash(params)
     if (elements[2] ~= nil) then
       self.Config.window:SetHeight(tonumber(elements[2]))
       self.Config.content:SetHeight(tonumber(elements[2]))
+    end
+    print(self.Config.window:GetHeight())
+  elseif (elements[1] == "winwidth") then
+    if (elements[2] ~= nil) then
+      self.Config.window:SetWidth(tonumber(elements[2]))
+      self.Config.content:SetWidth(tonumber(elements[2]))
     end
     print(self.Config.window:GetHeight())
   end
@@ -470,6 +480,12 @@ function HUDCounter.Achievement.Event.Update(achievements)
     if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
       HUDCounter.Achievement:Queue(achievement.id)
     end
+  end
+end
+
+function HUDCounter.Achievement.Event.ItemSlot(params)
+  for key, item_id in pairs(params) do
+    HUDCounter.Achievement:Queue(item_id)
   end
 end
 
