@@ -90,9 +90,9 @@ function HUDCounter.UI:init()
   -- Calculate how tall a window we need. All our currencies will take up
   -- one line each, plus the experiecen and pa experience lines.
   self.lines = 1 + (HUDCounter.Experience.enable and 1 or 0)
-  self.window = AOMRift.UI:Window("title", 280, (8 + (HUDCounter.Experience.fontSize * self.lines)))
+  self.window = AOMRift.UI:Window("title", 280, (10 + (HUDCounter.Experience.fontSize * self.lines)))
   self.window.achievement = AOMRift.UI:Content(self.window.content, 
-    { top = (8 + (HUDCounter.Experience.fontSize * self.lines)), left = 0, right = 0, height = 1 },
+    { top = (10 + (HUDCounter.Experience.fontSize * self.lines)), left = 0, right = 0, height = 1 },
     { alpha = 0 }, "Frame"
   )
 

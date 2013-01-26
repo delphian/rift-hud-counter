@@ -32,14 +32,30 @@ function HUDCounter.Achievement:init(window, content)
   self.Config.rows = {}
   -- Height of each row
   self.Config.iconSize = 60
+  self.Config.rowFade = 0.0
+  self.Config.rowFadeWatch = 0.50
+  self.Config.rowFadeDelay = 1.0
   -- Font size for description
   self.Config.fontSize = 14
   -- Size of rows.
-  self.Config.rowWidth = 300
+  self.Config.winWidth = 500
+  self.Config.winAlpha = 0
+  -- Enable the border
+  self.Config.enableBorder = false
   -- Debugging.
   self.Config.debug = false
 
   self.UI = {}
+
+  self.Config.window:SetWidth(self.Config.winWidth)
+  self.Config.content:SetWidth(self.Config.winWidth)
+  self.Config.window.background:SetAlpha(self.Config.winAlpha)
+  if (self.Config.enableBorder == false) then
+    self.Config.window.borderTop:SetAlpha(0)
+    self.Config.window.borderBottom:SetAlpha(0)
+    self.Config.window.borderLeft:SetAlpha(0)
+    self.Config.window.borderRight:SetAlpha(0)
+  end
 
   -- Register callbacks.
   table.insert(Command.Slash.Register("hudach"), {HUDCounter.Achievement.Event.Slash, "HUDCounter", "Slash Command"})
@@ -71,7 +87,7 @@ function HUDCounter.Achievement:ShowRow(index)
   -- Icon.
   row.icon:SetWidth(self.Config.iconSize)
   -- Description field.
-  --row.text:SetWidth(row.Content:GetWidth() - row.icon:GetWidth())
+  row.text:SetPoint("TOPLEFT", row.Content, "TOPLEFT", row.icon:GetWidth(), 0)
   row.text:SetWordwrap(true)
   row.text:SetFontSize(self.Config.fontSize)
   -- Show windows.
@@ -86,6 +102,10 @@ end
 --   The frame to adjust and insert achievement monitor rows into.
 --
 function HUDCounter.Achievement:Redraw()
+  self.Config.window.borderTop:SetAlpha(self.Config.enableBorder and 1 or 0)
+  self.Config.window.borderBottom:SetAlpha(self.Config.enableBorder and 1 or 0)
+  self.Config.window.borderLeft:SetAlpha(self.Config.enableBorder and 1 or 0)
+  self.Config.window.borderRight:SetAlpha(self.Config.enableBorder and 1 or 0)
   -- Initially set all rows to invisible and shrink container window.
   for key, value in ipairs(self.Config.rows) do
     if (self.Config.rows[key].Content:GetVisible() == true) then
@@ -281,6 +301,8 @@ function HUDCounter.Achievement:eventSlash(params)
     print("/hudach rows")
     print("/hudach winheight {height_in_pixels}")
     print("/hudach winwidth {width_in_pixels}")
+    print("/hudach border")
+    print("/hudcounter winalpha {0-1, 1 fully transparent}")
     print("/hudach watch {achievement_id}")
     print("  Toggle the watch status of an achievement.")
     print("/hudach iconSize {new_pixel_iconSize}")
@@ -299,6 +321,13 @@ function HUDCounter.Achievement:eventSlash(params)
       self.Config.debug = true
       print("Achievement debug enabled.")
     end
+  elseif (elements[1] == "border") then
+    if (self.Config.enableBorder == true) then
+      self.Config.enableBorder = false
+    else
+      self.Config.enableBorder = true
+    end
+    self:Redraw()
   elseif (elements[1] == "ignore") then
     achIds = HUDCounter.Achievement:Ignore(elements[2])
     dump(achIds)
@@ -340,6 +369,11 @@ function HUDCounter.Achievement:eventSlash(params)
       self.Config.content:SetWidth(tonumber(elements[2]))
     end
     print(self.Config.window:GetHeight())
+  elseif (elements[1] == "winalpha") then
+    if (elements[2] ~= nil) then
+      self.Config.window.background:SetAlpha(tonumber(elements[2]))
+    end
+    print(self.Config.window.background:GetAlpha())
   end
 end
 
@@ -416,6 +450,7 @@ function HUDCounter.Achievement:Print(id)
       row = self.Config.rows[1]
     end
     row.time = Inspect.Time.Real()
+    row.Content:SetAlpha(1)
     row.icon:SetTexture("Rift", object.icon)
     row.text:SetText(description)
     row.icon:SetAlpha(1)
@@ -436,10 +471,18 @@ end
 function HUDCounter.Achievement:EventSystemUpdateBegin()
   local currentTime = Inspect.Time.Real()
   for key, Row in pairs(self.Config.rows) do
-    local currentAlpha = Row.icon:GetAlpha()
-    if (currentAlpha > 0.25) then
-      Row.icon:SetAlpha(currentAlpha - 0.01)
-      Row.text:SetAlpha(currentAlpha - 0.01)
+    if (currentTime > (Row.time + self.Config.rowFadeDelay)) then
+      local currentAlpha = Row.icon:GetAlpha()
+      if (key == 1 and currentAlpha > self.Config.rowFade) then
+        Row.Content:SetAlpha(currentAlpha - 0.01)
+        Row.icon:SetAlpha(currentAlpha - 0.01)
+        Row.text:SetAlpha(currentAlpha - 0.01)
+      end
+      if (key > 1 and currentAlpha > self.Config.rowFadeWatch) then
+        Row.Content:SetAlpha(currentAlpha - 0.01)
+        Row.icon:SetAlpha(currentAlpha - 0.01)
+        Row.text:SetAlpha(currentAlpha - 0.01)
+      end
     end
     if (currentTime > (Row.time + 4)) then
       -- Print a new achievement if one is in the queue.
@@ -475,33 +518,35 @@ function HUDCounter.Achievement.Event.Update(achievements)
   if (HUDCounter.Achievement.Config.enable == false) then
     return
   end
-  for achievement_key, v in pairs(achievements) do
-    local achievement = AOMRift.Achievement:load(achievement_key)
-    if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
-      HUDCounter.Achievement:Queue(achievement.id)
+  if (PHP.count(achievements) <= 10) then
+    for achievement_key, v in pairs(achievements) do
+      local achievement = AOMRift.Achievement:load(achievement_key)
+      if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
+        HUDCounter.Achievement:Queue(achievement.id)
+      end
     end
   end
 end
 
 function HUDCounter.Achievement.Event.ItemSlot(params)
-  for key, item_id in pairs(params) do
-    HUDCounter.Achievement:Queue(item_id)
+  if (PHP.count(params) <= 3) then
+    for key, item_id in pairs(params) do
+      HUDCounter.Achievement:Queue(item_id)
+    end
   end
 end
 
 function HUDCounter.Achievement.Event.ItemUpdate(params)
-  for key, item_id in pairs(params) do
-    local item = AOMRift.Item:Load(item_id)
-    if (item ~= nil) then
+  if (PHP.count(params) <= 3) then
+    for key, item_id in pairs(params) do
       HUDCounter.Achievement:Queue(item_id)
     end
   end
 end
 
 function HUDCounter.Achievement.Event.Currency(params)
-  for currency_id, value in pairs(params) do
-    local currency = AOMRift.Currency:load(currency_id)
-    if (currency ~= nil) then
+  if (PHP.count(params) <= 3) then
+    for currency_id, value in pairs(params) do
       HUDCounter.Achievement:Queue(currency_id)
     end
   end
