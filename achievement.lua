@@ -341,26 +341,26 @@ function HUDCounter.Achievement:eventSlash(params)
   elseif (elements[1] == "achievement") then
     if (self.Config.enableAchievement == true) then
       self.Config.enableAchievement = false
-      print("HUD Achievements enabled.")
+      print("HUD Achievements disabled.")
     else
       self.Config.enableAchievement = true
-      print("HUD Achievements disabled.")
+      print("HUD Achievements enabled.")
     end
   elseif (elements[1] == "item") then
     if (self.Config.enableItem == true) then
       self.Config.enableItem = false
-      print("HUD Items enabled.")
+      print("HUD Items disabled.")
     else
       self.Config.enableItem = true
-      print("HUD Items disabled.")
+      print("HUD Items enabled.")
     end
   elseif (elements[1] == "currency") then
     if (self.Config.enableCurrency == true) then
       self.Config.enableCurrency = false
-      print("HUD Currency enabled.")
+      print("HUD Currency disabled.")
     else
       self.Config.enableCurrency = true
-      print("HUD Currency disabled.")
+      print("HUD Currency enabled.")
     end
   elseif (elements[1] == "height") then
     self.Config.iconSize = tonumber(elements[2])
