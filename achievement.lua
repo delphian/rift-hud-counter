@@ -126,8 +126,15 @@ function HUDCounter.Achievement:Redraw()
   if (self.Config.rows[1] == nil) then
     self.Config.rows[1] = self:DrawRow(self.Config.content, 1)
     bugFix = self.Config.rows[1].icon
+    function bugFix.Event:MouseIn()
+      if (HUDCounter.Achievement:IdType(HUDCounter.Achievement.Config.rows[1].achId) == "item") then
+        Command.Tooltip(HUDCounter.Achievement.Config.rows[1].achId)
+      end
+    end
+    function bugFix.Event:MouseOut()
+      Command.Tooltip(nil)
+    end
     function bugFix.Event:LeftClick()
-      print("Got it")
       HUDCounter.Achievement:Watch(HUDCounter.Achievement.Config.rows[1].achId)
       HUDCounter.Achievement:Redraw()
     end
