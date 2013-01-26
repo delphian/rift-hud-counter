@@ -12,7 +12,9 @@ HUDCounter.Achievement.Event = {}
 function HUDCounter.Achievement:init(window, content)
   self.Config = {}
   -- Enable any achievements on the HUD.
-  self.Config.enable = true
+  self.Config.enableAchievement = true
+  self.Config.enableCurrency = true
+  self.Config.enableItem = true
   -- Save the reference to window
   self.Config.window = window
   self.Config.content = content
@@ -58,7 +60,7 @@ function HUDCounter.Achievement:init(window, content)
   end
 
   -- Register callbacks.
-  table.insert(Command.Slash.Register("hudach"), {HUDCounter.Achievement.Event.Slash, "HUDCounter", "Slash Command"})
+  table.insert(Command.Slash.Register("hud"), {HUDCounter.Achievement.Event.Slash, "HUDCounter", "Slash Command"})
   table.insert(Event.Achievement.Update, {HUDCounter.Achievement.Event.Update, "HUDCounter", "Handle Achievement Update"})
   table.insert(Event.Item.Update, {HUDCounter.Achievement.Event.ItemUpdate, "HUDCounter", "Handle Item Updates"})
   table.insert(Event.System.Update.Begin, {HUDCounter.Achievement.Event.SystemUpdateBegin, "HUDCounter", "Handle Timer"})
@@ -292,34 +294,29 @@ end
 function HUDCounter.Achievement:eventSlash(params)
   local elements = PHP.explode(" ", params)
   if (elements[1] == "") then
-    print("HUD Achievement commands:")
-    print("/hudach ignore {achievement_id}")
-    print("  Toggle the ignore status of an achievement. List all achievements ignored if no parameter specified.")
-    print("/hudach watch")
-    print("  List all watched achievement ids. List all achievements watched if no parameter specified.")
-    print("/hudach queue")
-    print("/hudach rows")
-    print("/hudach winheight {height_in_pixels}")
-    print("/hudach winwidth {width_in_pixels}")
-    print("/hudach border")
-    print("/hudcounter winalpha {0-1, 1 fully transparent}")
-    print("/hudach watch {achievement_id}")
-    print("  Toggle the watch status of an achievement.")
-    print("/hudach iconSize {new_pixel_iconSize}")
-    print("/hudach fontsize {new_pixel_fontsize}")
-    print("/hudach redraw")
-    print("  Destroy all achievement rows in the HUD and redraw.")
-    print("/hudach debug")
-    print("  Toggle debug information to console.")
-    print("/hudach enable|disable")
-    print("  Enable or disable achievements on HUD.")
+    print("\nHUD commands:")
+    print("/hud ignore {id} (Add id to ignore list)")
+    print("/hud watch {id} (Add id to watch row)")
+    print("/hud queue {id} (Add id to queue)")
+    print("/hud rows (Dump row debug data)")
+    print("/hud height {row height in pixels}")
+    print("/hud width {row width in pixels}")
+    print("/hud border (Toggle window border)")
+    print("/hud background {opacity} (0.0 - 1.0)")
+    print("/hud watch {id} (Add row to watch this id)")
+    print("/hud fontsize {font size in pixels}")
+    print("/hud redraw (Redraw the HUD)")
+    print("/hud debug (Toggle general debug code.")
+    print("/hud achievement (Toggle achievement handling)")
+    print("/hud item (Toggle item handling)")
+    print("/hud currency (Toggle currency handling)")
   elseif (elements[1] == "debug") then
     if (self.Config.debug == true) then
       self.Config.debug = false
-      print("Achievement debug disabled.")
+      print("Debug disabled.")
     else
       self.Config.debug = true
-      print("Achievement debug enabled.")
+      print("Debug enabled.")
     end
   elseif (elements[1] == "border") then
     if (self.Config.enableBorder == true) then
@@ -340,15 +337,31 @@ function HUDCounter.Achievement:eventSlash(params)
   elseif (elements[1] == "redraw") then
     print("Redrawing achievement rows...")
     self:Redraw()
-  elseif (elements[1] == "enable") then
-    self.Config.enable = true
-    print("HUD Achievements enabled.")
-    self:Redraw()
-  elseif (elements[1] == "disable") then
-    self.Config.enable = false
-    print("HUD Achievements disabled.")
-    self:Redraw()
-  elseif (elements[1] == "iconsize") then
+  elseif (elements[1] == "achievement") then
+    if (self.Config.enableAchievement == true) then
+      self.Config.enableAchievement = false
+      print("HUD Achievements enabled.")
+    else
+      self.Config.enableAchievement = true
+      print("HUD Achievements disabled.")
+    end
+  elseif (elements[1] == "item") then
+    if (self.Config.enableItem == true) then
+      self.Config.enableItem = false
+      print("HUD Items enabled.")
+    else
+      self.Config.enableItem = true
+      print("HUD Items disabled.")
+    end
+  elseif (elements[1] == "currency") then
+    if (self.Config.enableCurrency == true) then
+      self.Config.enableCurrency = false
+      print("HUD Currency enabled.")
+    else
+      self.Config.enableCurrency = true
+      print("HUD Currency disabled.")
+    end
+  elseif (elements[1] == "height") then
     self.Config.iconSize = tonumber(elements[2])
     self:Redraw()
   elseif (elements[1] == "fontsize") then
@@ -357,23 +370,19 @@ function HUDCounter.Achievement:eventSlash(params)
   elseif (elements[1] == "rows") then
     PHP.print_r(self.Config.rows)
     PHP.print_r(Event)
-  elseif (elements[1] == "winheight") then
-    if (elements[2] ~= nil) then
-      self.Config.window:SetHeight(tonumber(elements[2]))
-      self.Config.content:SetHeight(tonumber(elements[2]))
-    end
-    print(self.Config.window:GetHeight())
-  elseif (elements[1] == "winwidth") then
+  elseif (elements[1] == "width") then
     if (elements[2] ~= nil) then
       self.Config.window:SetWidth(tonumber(elements[2]))
       self.Config.content:SetWidth(tonumber(elements[2]))
     end
     print(self.Config.window:GetHeight())
-  elseif (elements[1] == "winalpha") then
+  elseif (elements[1] == "background") then
     if (elements[2] ~= nil) then
       self.Config.window.background:SetAlpha(tonumber(elements[2]))
     end
     print(self.Config.window.background:GetAlpha())
+  else
+    print("Unknown command.")
   end
 end
 
@@ -408,12 +417,14 @@ end
 --
 function HUDCounter.Achievement:IdType(id)
   local idType = nil
-  if (id == "coin") then
-    idType = "coin"
-  elseif (string.sub(id, 1, 1) == "i") then
-    idType = "item"
-  elseif (string.sub(id, 1, 1) == "c") then
-    idType = "achievement"
+  if (type(id) == "string") then
+    if (id == "coin") then
+      idType = "coin"
+    elseif (string.sub(id, 1, 1) == "i") then
+      idType = "item"
+    elseif (string.sub(id, 1, 1) == "c") then
+      idType = "achievement"
+    end
   end
   if (self.Config.debug == true) then
     print(id .. " is " .. (idType or "nil"))
@@ -515,7 +526,7 @@ end
 -- Callback for Event.Achievement.Update
 --
 function HUDCounter.Achievement.Event.Update(achievements)
-  if (HUDCounter.Achievement.Config.enable == false) then
+  if (HUDCounter.Achievement.Config.enableAchievement == false) then
     return
   end
   if (PHP.count(achievements) <= 10) then
@@ -529,22 +540,39 @@ function HUDCounter.Achievement.Event.Update(achievements)
 end
 
 function HUDCounter.Achievement.Event.ItemSlot(params)
+  if (HUDCounter.Achievement.Config.enableItem == false) then
+    return
+  end
   if (PHP.count(params) <= 3) then
     for key, item_id in pairs(params) do
-      HUDCounter.Achievement:Queue(item_id)
+      if (type(item_id) == "string") then
+        HUDCounter.Achievement:Queue(item_id)
+      else
+        print("Item Slot id is not a string: " .. type(item_id))
+      end
     end
   end
 end
 
 function HUDCounter.Achievement.Event.ItemUpdate(params)
+  if (HUDCounter.Achievement.Config.enableItem == false) then
+    return
+  end
   if (PHP.count(params) <= 3) then
     for key, item_id in pairs(params) do
-      HUDCounter.Achievement:Queue(item_id)
+      if (type(item_id) == "string") then
+        HUDCounter.Achievement:Queue(item_id)
+      else
+        print("Item id is not a string: " .. type(item_id))
+      end
     end
   end
 end
 
 function HUDCounter.Achievement.Event.Currency(params)
+  if (HUDCounter.Achievement.Config.enableCurrency == false) then
+    return
+  end
   if (PHP.count(params) <= 3) then
     for currency_id, value in pairs(params) do
       HUDCounter.Achievement:Queue(currency_id)
