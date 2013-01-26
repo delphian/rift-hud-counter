@@ -294,7 +294,8 @@ end
 function HUDCounter.Achievement:eventSlash(params)
   local elements = PHP.explode(" ", params)
   if (elements[1] == "") then
-    print("\nHUD commands:")
+    print("\ngit://github.com/delphian/rift-hud-counter.git")
+    print("\nCommands:")
     print("/hud ignore {id} (Add id to ignore list)")
     print("/hud watch {id} (Add id to watch row)")
     print("/hud queue {id} (Add id to queue)")
