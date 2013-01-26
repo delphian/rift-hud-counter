@@ -363,10 +363,16 @@ function HUDCounter.Achievement:eventSlash(params)
       print("HUD Currency enabled.")
     end
   elseif (elements[1] == "height") then
-    self.Config.iconSize = tonumber(elements[2])
+    if (elements[2] ~= nil) then
+      self.Config.iconSize = tonumber(elements[2])
+    end
+    print(self.Config.iconSize)
     self:Redraw()
   elseif (elements[1] == "fontsize") then
-    self.Config.fontSize = tonumber(elements[2])
+    if (elements[2] ~= nil) then
+      self.Config.fontSize = tonumber(elements[2])
+    end
+    print(self.Config.fontSize)
     self:Redraw()
   elseif (elements[1] == "rows") then
     PHP.print_r(self.Config.rows)
