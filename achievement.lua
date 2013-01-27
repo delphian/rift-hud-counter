@@ -351,13 +351,6 @@ function HUDCounter.Achievement:eventSlash(params)
       self.Config.debug = true
       print("Debug enabled.")
     end
-  elseif (elements[1] == "border") then
-    if (self.Config.enableBorder == true) then
-      self.Config.enableBorder = false
-    else
-      self.Config.enableBorder = true
-    end
-    self:Redraw()
   elseif (elements[1] == "ignore") then
     achIds = HUDCounter.Achievement:Ignore(elements[2])
     dump(achIds)
@@ -397,17 +390,26 @@ function HUDCounter.Achievement:eventSlash(params)
   elseif (elements[1] == "rows") then
     PHP.print_r(self.Config.rows)
     PHP.print_r(Event)
+  -- Window related commands.
+  elseif (elements[1] == "winborder") then
+    if (self.Config.enableBorder == true) then
+      self.Config.enableBorder = false
+    else
+      self.Config.enableBorder = true
+    end
+    self:Redraw()
   elseif (elements[1] == "winwidth") then
     if (elements[2] ~= nil) then
       self.Config.window:SetWidth(tonumber(elements[2]))
       self.Config.content:SetWidth(tonumber(elements[2]))
     end
-    print(self.Config.window:GetHeight())
+    print(self.Config.window:GetWidth())
   elseif (elements[1] == "winopacity") then
     if (elements[2] ~= nil) then
       self.Config.window.background:SetAlpha(tonumber(elements[2]))
     end
     print(self.Config.window.background:GetAlpha())
+  -- Row related commands.
   elseif (elements[1] == "rowfontsize") then
     if (elements[2] ~= nil) then
       self.Config.fontSize = tonumber(elements[2])
