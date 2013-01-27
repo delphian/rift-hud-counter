@@ -34,10 +34,10 @@ function HUDCounter.Achievement:init(window, content)
   self.Config.rows = {}
   -- Height of each row
   self.Config.rowHeight = 55
-  self.Config.rowFade = 0.25
-  self.Config.rowFadeWatch = 0.75
+  self.Config.rowFade = 0.50
+  self.Config.rowFadeWatch = 0.25
   self.Config.rowFadeDelay = 2.0
-  self.Config.rowAlpha = 0.25
+  self.Config.rowAlpha = 0.50
   self.Config.rowR = 0.75
   self.Config.rowG = 0.75
   self.Config.rowB = 1
@@ -539,6 +539,7 @@ function HUDCounter.Achievement:Print(id)
     end
     row.time = Inspect.Time.Real()
     row.Content:SetAlpha(1)
+    row.Background:SetAlpha(self.Config.rowAlpha)
     row.icon:SetTexture("Rift", object.icon)
     row.text:SetText(description)
     --row.icon:SetAlpha(1)
@@ -563,13 +564,9 @@ function HUDCounter.Achievement:EventSystemUpdateBegin()
       local currentAlpha = Row.Content:GetAlpha()
       if (key == 1 and currentAlpha > self.Config.rowFade) then
         Row.Content:SetAlpha(currentAlpha - 0.01)
-        --Row.icon:SetAlpha(currentAlpha - 0.01)
-        --Row.text:SetAlpha(currentAlpha - 0.01)
       end
       if (key > 1 and currentAlpha > self.Config.rowFadeWatch) then
         Row.Content:SetAlpha(currentAlpha - 0.01)
-        --Row.icon:SetAlpha(currentAlpha - 0.01)
-        --Row.text:SetAlpha(currentAlpha - 0.01)
       end
     end
     if (currentTime > (Row.time + 4)) then
