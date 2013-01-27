@@ -33,12 +33,16 @@ function HUDCounter.Achievement:init(window, content)
   -- row table. The row table will contain an icon and a text description.
   self.Config.rows = {}
   -- Height of each row
-  self.Config.iconSize = 60
-  self.Config.rowFade = 0.0
-  self.Config.rowFadeWatch = 0.60
+  self.Config.rowHeight = 55
+  self.Config.rowFade = 0.25
+  self.Config.rowFadeWatch = 0.75
   self.Config.rowFadeDelay = 2.0
+  self.Config.rowAlpha = 0.25
+  self.Config.rowR = 0.75
+  self.Config.rowG = 0.75
+  self.Config.rowB = 1
   -- Font size for description
-  self.Config.fontSize = 16
+  self.Config.fontSize = 22
   self.Config.fontColorR = 1
   self.Config.fontColorG = 1
   self.Config.fontColorB = 1
@@ -83,14 +87,20 @@ function HUDCounter.Achievement:ShowRow(index)
   local row = self.Config.rows[index]
   -- If the new row height is greater or lesser then the old then adjust
   -- container windows.
-  local newHeight = (self.Config.iconSize - row.icon:GetHeight())
+  local newHeight = (self.Config.rowHeight - row.icon:GetHeight())
   if (newHeight ~= 0) then
     self.Config.window:SetHeight(self.Config.window:GetHeight() + newHeight)
     self.Config.content:SetHeight(self.Config.content:GetHeight() + newHeight)
   end
-  row.Content:SetHeight(self.Config.iconSize)
+  row.Content:SetHeight(self.Config.rowHeight)
+  row.Background:SetBackgroundColor(
+    self.Config.rowR,
+    self.Config.rowG,
+    self.Config.rowB,
+    self.Config.rowAlpha
+  )
   -- Icon.
-  row.icon:SetWidth(self.Config.iconSize)
+  row.icon:SetWidth(self.Config.rowHeight)
   -- Description field.
   row.text:SetPoint("TOPLEFT", row.Content, "TOPLEFT", row.icon:GetWidth(), 0)
   row.text:SetWordwrap(true)
@@ -117,8 +127,8 @@ function HUDCounter.Achievement:Redraw()
     if (self.Config.rows[key].Content:GetVisible() == true) then
       self.Config.rows[key].Content:SetVisible(false)
       self.Config.rows[key].achId = nil
-      self.Config.window:SetHeight(self.Config.window:GetHeight() - self.Config.iconSize)
-      self.Config.content:SetHeight(self.Config.content:GetHeight() - self.Config.iconSize)
+      self.Config.window:SetHeight(self.Config.window:GetHeight() - self.Config.rowHeight)
+      self.Config.content:SetHeight(self.Config.content:GetHeight() - self.Config.rowHeight)
     end
   end
   -- Return right now if HUD Achievements is disabled.
@@ -145,8 +155,8 @@ function HUDCounter.Achievement:Redraw()
   end
   self:ShowRow(1)
   -- Increase the containing window size for the above row.
-  self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.iconSize)
-  self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.iconSize)
+  self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
+  self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.rowHeight)
   -- Setup any rows for achievements that are being specifically watched.
   local index = 2
   for key, value in pairs(self.Config.watch) do
@@ -164,8 +174,8 @@ function HUDCounter.Achievement:Redraw()
       HUDCounter.Achievement:Watch(self.achId)
       HUDCounter.Achievement:Redraw()
     end
-    self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.iconSize)
-    self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.iconSize)
+    self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
+    self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.rowHeight)
     index = index + 1
   end
 end
@@ -209,20 +219,26 @@ end
 --
 function HUDCounter.Achievement:DrawRow(parentFrame, index)
   offset = (index or 1) - 1
-  offset = (offset * self.Config.iconSize)
+  offset = (offset * self.Config.rowHeight)
   local Row = {}
-  position = { height = self.Config.iconSize, top = 0, left = 4, right = 4 }
-  Row.Content = AOMRift.UI:Content(parentFrame, position, {alpha=0.25})
+  position = { height = self.Config.rowHeight, top = 0, left = 0, right = 0 }
+  Row.Content = AOMRift.UI:Content(parentFrame, position, {alpha=0})
+  Row.Content:SetLayer(10)
+  -- Add our background
+  position = {top=0, bottom=0, left=0, right=0}
+  background = {red=self.Config.rowR, green=self.Config.rowG, blue=self.Config.rowB, alpha=self.Config.rowAlpha}
+  Row.Background = AOMRift.UI:Content(Row.Content, position, background)
+  Row.Background:SetLayer(11)
   -- Add our icon
-  position = { width = self.Config.iconSize, top = 0, bottom = 0, left = 0}
-  Row.icon = AOMRift.UI:Content(Row.Content, position, { alpha = 1 }, "Texture")
+  position = { width = self.Config.rowHeight, top = 0, bottom = 0, left = 0}
+  Row.icon = AOMRift.UI:Content(Row.Content, position, {alpha=1}, "Texture")
+  Row.icon:SetLayer(12)
   -- Add our text box.
-  position = { left = Row.icon:GetWidth(), right = 4, top = 0, bottom = 0 }
-  Row.text = AOMRift.UI:Content(Row.Content, position, {alpha=0.25}, "Text")
-  -- Attatch text box to right side of icon.
-  --AOMRift.UI:Attatch(Row.text, Row.icon, "right")
+  position = { left = Row.icon:GetWidth(), right = 0, top = 0, bottom = 0 }
+  Row.text = AOMRift.UI:Content(Row.Content, position, {alpha=0}, "Text")
   Row.text:SetWordwrap(true)
   Row.text:SetFontSize(self.Config.fontSize)
+  Row.text:SetLayer(12)
   -- Attatch to bottom of previous row.
   if (index > 1) then
     AOMRift.UI:Attatch(Row.Content, self.Config.rows[index -1].Content, "bottom")
@@ -311,20 +327,22 @@ function HUDCounter.Achievement:eventSlash(params)
     print("/hud watch {id} (Add id to watch row)")
     print("/hud queue {id} (Add id to queue)")
     print("/hud rows (Dump row debug data)")
-    print("/hud height {row height in pixels}")
-    print("/hud width {row width in pixels}")
-    print("/hud border (Toggle window border)")
-    print("/hud background {opacity} (0.0 - 1.0)")
     print("/hud watch {id} (Add row to watch this id)")
-    print("/hud fontsize {font size in pixels}")
-    print("/hud fontcolor {r} {g} {b} (red, green, blue = 0.0-1.0)")
     print("/hud redraw (Redraw the HUD)")
     print("/hud debug (Toggle general debug code.")
     print("/hud achievement (Toggle achievement handling)")
     print("/hud item (Toggle item handling)")
     print("/hud currency (Toggle currency handling)")
-    print("/hud fade {opacity} (0.0-1.0, fade to this")
-    print("/hud faderow {opacity} (0.0-1.0 fade watch row to this)")
+    print("/hud winwidth {window width in pixels}")
+    print("/hud winborder (Toggle window border)")
+    print("/hud winopacity {window opacity} (0.0 - 1.0)")
+    print("/hud rowfontsize {font size in pixels}")
+    print("/hud rowfontcolor {r} {g} {b} (red, green, blue = 0.0-1.0)")
+    print("/hud rowbackcolor {r} {g} {b} (red, green, blue = 0.0-1.0)")
+    print("/hud rowopacity {opacity} (0.0 - 1.0)")
+    print("/hud rowheight {height in pixels}")
+    print("/hud rowfade {opacity} (0.0-1.0, fade active row to this)")
+    print("/hud rowfadewatch {opacity} (0.0-1.0 fade watch row to this)")
   elseif (elements[1] == "debug") then
     if (self.Config.debug == true) then
       self.Config.debug = false
@@ -376,43 +394,49 @@ function HUDCounter.Achievement:eventSlash(params)
       self.Config.enableCurrency = true
       print("HUD Currency enabled.")
     end
-  elseif (elements[1] == "height") then
-    if (elements[2] ~= nil) then
-      self.Config.iconSize = tonumber(elements[2])
-    end
-    print(self.Config.iconSize)
-    self:Redraw()
-  elseif (elements[1] == "fontsize") then
-    if (elements[2] ~= nil) then
-      self.Config.fontSize = tonumber(elements[2])
-    end
-    print(self.Config.fontSize)
-    self:Redraw()
   elseif (elements[1] == "rows") then
     PHP.print_r(self.Config.rows)
     PHP.print_r(Event)
-  elseif (elements[1] == "width") then
+  elseif (elements[1] == "winwidth") then
     if (elements[2] ~= nil) then
       self.Config.window:SetWidth(tonumber(elements[2]))
       self.Config.content:SetWidth(tonumber(elements[2]))
     end
     print(self.Config.window:GetHeight())
-  elseif (elements[1] == "background") then
+  elseif (elements[1] == "winopacity") then
     if (elements[2] ~= nil) then
       self.Config.window.background:SetAlpha(tonumber(elements[2]))
     end
     print(self.Config.window.background:GetAlpha())
-  elseif (elements[1] == "fade") then
+  elseif (elements[1] == "rowfontsize") then
+    if (elements[2] ~= nil) then
+      self.Config.fontSize = tonumber(elements[2])
+    end
+    print(self.Config.fontSize)
+    self:Redraw()
+  elseif (elements[1] == "rowheight") then
+    if (elements[2] ~= nil) then
+      self.Config.rowHeight = tonumber(elements[2])
+    end
+    print(self.Config.rowHeight)
+    self:Redraw()
+  elseif (elements[1] == "rowopacity") then
+    if (elements[2] ~= nil) then
+      self.Config.rowAlpha = tonumber(elements[2])
+      self:Redraw()
+    end
+    print(self.Config.rowAlpha)
+  elseif (elements[1] == "rowfade") then
     if (elements[2] ~= nil) then
       self.Config.rowFade = tonumber(elements[2])
     end
     print(self.Config.rowFade)
-  elseif (elements[1] == "fadewatch") then
+  elseif (elements[1] == "rowfadewatch") then
     if (elements[2] ~= nil) then
       self.Config.rowFadeWatch = tonumber(elements[2])
     end
     print(self.Config.rowFadeWatch)
-  elseif (elements[1] == "fontcolor") then
+  elseif (elements[1] == "rowfontcolor") then
     if (elements[2] ~= nil and elements[3] ~= nil and elements[4] ~= nil) then
       self.Config.fontColorR = tonumber(elements[2])
       self.Config.fontColorG = tonumber(elements[3])
@@ -422,6 +446,16 @@ function HUDCounter.Achievement:eventSlash(params)
     print("Red: " .. self.Config.fontColorR .. ", " ..
           "Green: " .. self.Config.fontColorG .. ", " ..
           "Blue: " .. self.Config.fontColorB)
+  elseif (elements[1] == "rowbackcolor") then
+    if (elements[2] ~= nil and elements[3] ~= nil and elements[4] ~= nil) then
+      self.Config.rowR = tonumber(elements[2])
+      self.Config.rowG = tonumber(elements[3])
+      self.Config.rowB = tonumber(elements[4])
+      self:Redraw()
+    end
+    print("Red: " .. self.Config.rowR .. ", " ..
+          "Green: " .. self.Config.rowG .. ", " ..
+          "Blue: " .. self.Config.rowB)
   else
     print("Unknown command.")
   end
@@ -507,8 +541,8 @@ function HUDCounter.Achievement:Print(id)
     row.Content:SetAlpha(1)
     row.icon:SetTexture("Rift", object.icon)
     row.text:SetText(description)
-    row.icon:SetAlpha(1)
-    row.text:SetAlpha(1)
+    --row.icon:SetAlpha(1)
+    --row.text:SetAlpha(1)
     row.achId = id
   else
     print("Unknown id: " .. id)
@@ -526,16 +560,16 @@ function HUDCounter.Achievement:EventSystemUpdateBegin()
   local currentTime = Inspect.Time.Real()
   for key, Row in pairs(self.Config.rows) do
     if (currentTime > (Row.time + self.Config.rowFadeDelay)) then
-      local currentAlpha = Row.icon:GetAlpha()
+      local currentAlpha = Row.Content:GetAlpha()
       if (key == 1 and currentAlpha > self.Config.rowFade) then
         Row.Content:SetAlpha(currentAlpha - 0.01)
-        Row.icon:SetAlpha(currentAlpha - 0.01)
-        Row.text:SetAlpha(currentAlpha - 0.01)
+        --Row.icon:SetAlpha(currentAlpha - 0.01)
+        --Row.text:SetAlpha(currentAlpha - 0.01)
       end
       if (key > 1 and currentAlpha > self.Config.rowFadeWatch) then
         Row.Content:SetAlpha(currentAlpha - 0.01)
-        Row.icon:SetAlpha(currentAlpha - 0.01)
-        Row.text:SetAlpha(currentAlpha - 0.01)
+        --Row.icon:SetAlpha(currentAlpha - 0.01)
+        --Row.text:SetAlpha(currentAlpha - 0.01)
       end
     end
     if (currentTime > (Row.time + 4)) then
