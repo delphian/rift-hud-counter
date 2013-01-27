@@ -39,6 +39,9 @@ function HUDCounter.Achievement:init(window, content)
   self.Config.rowFadeDelay = 2.0
   -- Font size for description
   self.Config.fontSize = 16
+  self.Config.fontColorR = 1
+  self.Config.fontColorG = 1
+  self.Config.fontColorB = 1
   -- Size of rows.
   self.Config.winWidth = 500
   self.Config.winAlpha = 0
@@ -92,6 +95,7 @@ function HUDCounter.Achievement:ShowRow(index)
   row.text:SetPoint("TOPLEFT", row.Content, "TOPLEFT", row.icon:GetWidth(), 0)
   row.text:SetWordwrap(true)
   row.text:SetFontSize(self.Config.fontSize)
+  row.text:SetFontColor(self.Config.fontColorR, self.Config.fontColorG, self.Config.fontColorB, 1)
   -- Show windows.
   row.Content:SetVisible(true)
 end
@@ -313,6 +317,7 @@ function HUDCounter.Achievement:eventSlash(params)
     print("/hud background {opacity} (0.0 - 1.0)")
     print("/hud watch {id} (Add row to watch this id)")
     print("/hud fontsize {font size in pixels}")
+    print("/hud fontcolor {r} {g} {b} (red, green, blue = 0.0-1.0)")
     print("/hud redraw (Redraw the HUD)")
     print("/hud debug (Toggle general debug code.")
     print("/hud achievement (Toggle achievement handling)")
@@ -407,6 +412,16 @@ function HUDCounter.Achievement:eventSlash(params)
       self.Config.rowFadeWatch = tonumber(elements[2])
     end
     print(self.Config.rowFadeWatch)
+  elseif (elements[1] == "fontcolor") then
+    if (elements[2] ~= nil and elements[3] ~= nil and elements[4] ~= nil) then
+      self.Config.fontColorR = tonumber(elements[2])
+      self.Config.fontColorG = tonumber(elements[3])
+      self.Config.fontColorB = tonumber(elements[4])
+      self:Redraw()
+    end
+    print("Red: " .. self.Config.fontColorR .. ", " ..
+          "Green: " .. self.Config.fontColorG .. ", " ..
+          "Blue: " .. self.Config.fontColorB)
   else
     print("Unknown command.")
   end
