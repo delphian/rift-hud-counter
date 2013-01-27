@@ -318,6 +318,8 @@ function HUDCounter.Achievement:eventSlash(params)
     print("/hud achievement (Toggle achievement handling)")
     print("/hud item (Toggle item handling)")
     print("/hud currency (Toggle currency handling)")
+    print("/hud fade {opacity} (0.0-1.0, fade to this")
+    print("/hud faderow {opacity} (0.0-1.0 fade watch row to this)")
   elseif (elements[1] == "debug") then
     if (self.Config.debug == true) then
       self.Config.debug = false
@@ -395,6 +397,16 @@ function HUDCounter.Achievement:eventSlash(params)
       self.Config.window.background:SetAlpha(tonumber(elements[2]))
     end
     print(self.Config.window.background:GetAlpha())
+  elseif (elements[1] == "fade") then
+    if (elements[2] ~= nil) then
+      self.Config.rowFade = tonumber(elements[2])
+    end
+    print(self.Config.rowFade)
+  elseif (elements[1] == "fadewatch") then
+    if (elements[2] ~= nil) then
+      self.Config.rowFadeWatch = tonumber(elements[2])
+    end
+    print(self.Config.rowFadeWatch)
   else
     print("Unknown command.")
   end
