@@ -35,10 +35,10 @@ function HUDCounter.Achievement:init(window, content)
   -- Height of each row
   self.Config.iconSize = 60
   self.Config.rowFade = 0.0
-  self.Config.rowFadeWatch = 0.50
-  self.Config.rowFadeDelay = 1.0
+  self.Config.rowFadeWatch = 0.60
+  self.Config.rowFadeDelay = 2.0
   -- Font size for description
-  self.Config.fontSize = 14
+  self.Config.fontSize = 16
   -- Size of rows.
   self.Config.winWidth = 500
   self.Config.winAlpha = 0
@@ -438,6 +438,8 @@ function HUDCounter.Achievement:IdType(id)
       idType = "item"
     elseif (string.sub(id, 1, 1) == "c") then
       idType = "achievement"
+    elseif (string.sub(id, 1, 1) == "I") then
+      idType = "currency"
     end
   end
   if (self.Config.debug == true) then
