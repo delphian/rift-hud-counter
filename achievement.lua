@@ -521,13 +521,19 @@ function HUDCounter.Achievement:Print(id)
   local description = nil
   if (self:IdType(id) == "item") then
     object = AOMRift.Item:Load(id);
-    description = object.name .. " (" .. object.value .. ")"
+    if (object ~= nil) then
+      description = object.name .. " (" .. object.value .. ")"
+    end
   elseif (self:IdType(id) == "achievement") then
     object = AOMRift.Achievement:load(id)
-    description = self:makeDescription(id)
+    if (object ~= nil) then
+      description = self:makeDescription(id)
+    end
   elseif ((self:IdType(id) == "currency") or (self:IdType(id) == "coin")) then
     object = AOMRift.Currency:load(id)
-    description = object.name .. " (" .. object.value .. ")"
+    if (object ~= nil) then
+      description = object.name .. " (" .. object.value .. ")"
+    end
   end
   if (self.Config.debug == true) then
     print("----------------------------------------")
