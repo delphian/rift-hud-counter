@@ -42,8 +42,8 @@ function HUDCounter.Experience:update()
     self.last = Inspect.Experience()
     change = 0
   end
-  self.pctTotal = AOMMath:round(percent, 1)
-  self.pctChange = AOMMath:round(change, 1)
+  self.pctTotal = PHP.round(percent, 1)
+  self.pctChange = PHP.round(change, 1)
 end
 
 -- Update or initialize attunement change.
@@ -60,8 +60,8 @@ function HUDCounter.Attunement:update()
     self.last = Inspect.Attunement.Progress()
     change = 0
   end
-  self.pctTotal = AOMMath:round(percent, 1)
-  self.pctChange = AOMMath:round(change, 1)
+  self.pctTotal = PHP.round(percent, 1)
+  self.pctChange = PHP.round(change, 1)
 end
 
 -- Update or initialize currency change.
@@ -128,7 +128,7 @@ function HUDCounter:init()
   -- Register callbacks.
   table.insert(Event.Experience.Accumulated, {self.Event.Experience, "HUDCounter", "Handle Experience Change"})
   table.insert(Event.Attunement.Progress.Accumulated, {self.Event.Attunement, "HUDCounter", "Handle Attunement Change"})
-  print("HUD Counter loaded. (".._VERSION.."). Type /aom for help.")  
+  print("HUD Counter loaded. (".._VERSION.."). Type /hud for help.")  
 end
 
 -- Reset all the counters.
@@ -199,5 +199,13 @@ function HUDCounter.Event.SlashHandler(params)
   end
 end
 
+function HUDCounter.Event.AddonLoadEnd(addon)
+  if (addon == "HUDCounter") then
+    HUDCounter.init(HUDCounter)
+    HUDCounter.update(HUDCounter)
+  end
+end
+
 -- Register callbacks.
+table.insert(Event.Addon.Load.End, {HUDCounter.Event.AddonLoadEnd, "HUDCounter", "Initialize Addon"})
 table.insert(Command.Slash.Register("aom"), {HUDCounter.Event.SlashHandler, "HUDCounter", "Slash Command"})

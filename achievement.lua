@@ -482,7 +482,7 @@ function HUDCounter.Achievement:makeDescription(achId)
   for req_key, req_value in ipairs(achievement:get_incomplete()) do
     req = achievement:get_req(req_key)
     if (self.Config.debug == true) then
-      print(AOMLua:print_r(req, "Requirement"))
+      PHP.print_r(req)
     end
     achText = achText .. req.name .. " (" .. req.done .. "/" .. req.total .. ")"
   end
@@ -608,7 +608,7 @@ function HUDCounter.Achievement.Event.Update(achievements)
   if (PHP.count(achievements) <= 10) then
     for achievement_key, v in pairs(achievements) do
       local achievement = AOMRift.Achievement:load(achievement_key)
-      if ((not achievement.complete) and achievement.current and (AOMMath:count(achievement.requirement) == 1)) then
+      if ((not achievement.complete) and achievement.current and (PHP.count(achievement.requirement) == 1)) then
         HUDCounter.Achievement:Queue(achievement.id)
       end
     end
