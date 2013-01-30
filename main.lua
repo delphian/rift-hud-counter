@@ -53,15 +53,17 @@ function HUDCounter.Attunement:update()
     self.last = Inspect.Attunement.Progress()
   end
   local attunement = Inspect.Attunement.Progress()
-  local percent = (attunement.accumulated / attunement.needed) * 100
-  local change = percent - ((self.last.accumulated / self.last.needed) * 100)
-  -- If change percent is negative then we just gained a lavel. Reset counter.
-  if change < 0 then
-    self.last = Inspect.Attunement.Progress()
-    change = 0
+  if (attunement ~= nil) then
+    local percent = (attunement.accumulated / attunement.needed) * 100
+    local change = percent - ((self.last.accumulated / self.last.needed) * 100)
+    -- If change percent is negative then we just gained a lavel. Reset counter.
+    if change < 0 then
+      self.last = Inspect.Attunement.Progress()
+      change = 0
+    end
+    self.pctTotal = PHP.round(percent, 1)
+    self.pctChange = PHP.round(change, 1)
   end
-  self.pctTotal = PHP.round(percent, 1)
-  self.pctChange = PHP.round(change, 1)
 end
 
 -- Update or initialize currency change.
