@@ -51,9 +51,7 @@ HUDCounter.Rows.DefaultConfig = {
 function HUDCounter.Rows:init(window, content)
   -- Make sure everything in our watch list has a history
   -- for the counter.
-  for id in pairs(self.Config.watch) do
-    self:UpdateHistory(id)
-  end
+  self:UpdateHistoryWatched()
   -- Save the reference to window
   self.window = window
   self.content = content
@@ -107,7 +105,9 @@ function HUDCounter.Rows.ConfigLoad()
     HUDCounter.Rows.Config = HUDCounter.Rows.DefaultConfig
   end
   if (not PHP.empty(HUDCounterRowsHistory)) then
-    HUDCounter.Rows.History = HUDCounterRowsHistory
+    for id, value in ipairs(HUDCounterRowsHistory) do
+      HUDCounter.Rows:UpdateHistory(id)
+    end
   end
 end
 
@@ -506,7 +506,9 @@ function HUDCounter.Rows:eventSlash(params)
       self.Config.watch = {}
     else
       self.History = {}
+      self:UpdateHistoryWatched()
     end
+    self:Redraw()
   else
     print("Unknown command.")
   end
@@ -565,6 +567,9 @@ end
 -- Record items if this is the first time they have been aquired since
 -- the last counter reset.
 --
+-- @param id
+--   Global identifier.
+--
 function HUDCounter.Rows:UpdateHistory(id)
   if (self.History[id] == nil) then
     local idType = self:IdType(id)
@@ -575,6 +580,19 @@ function HUDCounter.Rows:UpdateHistory(id)
     elseif (idType == "achievement") then
       self.History[id] = AOMRift.Achievement:load(id)
     end
+  end
+end
+
+--
+-- Update history for all watched ids.
+--
+function HUDCounter.Rows:UpdateHistoryWatched()
+  for id in pairs(self.Config.watch) do
+    self:UpdateHistory(id)
+  end
+  -- Update the history for the currently displayed id.
+  if (self.rows and self.rows[0]) then
+    self:UpdateHistory(self.rows[0])
   end
 end
 
