@@ -1,6 +1,7 @@
 
 HUDCounter.Rows = {}
 HUDCounter.Rows.Event = {}
+HUDCounter.Rows.History = {}
 HUDCounter.Rows.DefaultConfig = {
   -- Enable any achievements on the HUD.
   enableAchievement = true,
@@ -309,6 +310,7 @@ function HUDCounter.Rows:Queue(id)
     if (self.Config.queue[id] ~= nil) then
       self.Config.queue[id] = nil
     else
+      self:UpdateHistory(id)
       self.Config.queue[id] = id
     end
   end
@@ -506,14 +508,15 @@ function HUDCounter.Rows:makeDescription(achId)
   if (type(achId) ~= table) then
     achievement = AOMRift.Achievement:load(achId)
   end
-  local achText = achievement.category.name .. ": " .. achievement.name .. ": " -- .. achievement.description .. ": "
+  local achText = achievement.category.name .. ": " .. achievement.name .. ": "
   -- Output the requirements.
   for req_key, req_value in ipairs(achievement:get_incomplete()) do
     req = achievement:get_req(req_key)
+    req_history = self.History[achId]:get_req(req_key)
     if (self.Config.debug == true) then
       PHP.print_r(req)
     end
-    achText = achText .. req.name .. " (" .. req.done .. "/" .. req.total .. ")"
+    achText = achText .. req.name .. ": " .. req.done .. "/" .. req.total .. " (" .. ((req.done - req_history.done) + 1) .. ")"
   end
   return achText  
 end
@@ -541,6 +544,23 @@ function HUDCounter.Rows:IdType(id)
 end
 
 --
+-- Record items if this is the first time they have been aquired since
+-- the last counter reset.
+--
+function HUDCounter.Rows:UpdateHistory(id)
+  if (self.History[id] == nil) then
+    local idType = self:IdType(id)
+    if (idType == "item") then
+      self.History[id] = AOMRift.Item:Load(id)
+    elseif ((idType == "currency") or (idType == "coin")) then
+      self.History[id] = AOMRift.Currency:load(id)
+    elseif (idType == "achievement") then
+      self.History[id] = AOMRift.Achievement:load(id)
+    end
+  end
+end
+
+--
 -- Print to one of our rows.
 --
 -- @param string|int id
@@ -551,7 +571,7 @@ function HUDCounter.Rows:Print(id)
   if (self:IdType(id) == "item") then
     object = AOMRift.Item:Load(id);
     if (object ~= nil) then
-      description = object.name .. " (" .. object.value .. ")"
+      description = object.name .. ": " .. object.value
     end
   elseif (self:IdType(id) == "achievement") then
     object = AOMRift.Achievement:load(id)
@@ -561,7 +581,8 @@ function HUDCounter.Rows:Print(id)
   elseif ((self:IdType(id) == "currency") or (self:IdType(id) == "coin")) then
     object = AOMRift.Currency:load(id)
     if (object ~= nil) then
-      description = object.name .. " (" .. object.value .. ")"
+      description = object.name .. ": " .. object.value .. " ("
+        .. (object.value - self.History[id].value) .. ")"
     end
   end
   if (self.Config.debug == true) then
@@ -579,8 +600,6 @@ function HUDCounter.Rows:Print(id)
     row.Background:SetAlpha(self.Config.rowAlpha)
     row.icon:SetTexture("Rift", object.icon)
     row.text:SetText(description)
-    --row.icon:SetAlpha(1)
-    --row.text:SetAlpha(1)
     row.achId = id
   else
     print("Unknown id: " .. id)
