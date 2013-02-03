@@ -22,7 +22,7 @@ Dependencies = {
 
 SavedVariables = {
   HUDCounterRowsConfig = "account",
-  HUDCounterRowsConfigRowFontSize = "account",
+  HUDCounterRowsHistory = "account",
 }
 
 RunOnStartup = {

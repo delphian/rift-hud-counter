@@ -85,6 +85,7 @@ end
 --
 function HUDCounter.Rows.ConfigSave()
   HUDCounterRowsConfig = HUDCounter.Rows.Config
+  HUDCounterRowsHistory = self.History
 end
 
 --
@@ -99,6 +100,9 @@ function HUDCounter.Rows.ConfigLoad()
   else
     print("Loading default configuration")
     HUDCounter.Rows.Config = HUDCounter.Rows.DefaultConfig
+  end
+  if (not PHP.empty(HUDCounterRowsHistory)) then
+    HUDCounter.Rows.History = HUDCounterRowsHistory
   end
 end
 
@@ -372,6 +376,7 @@ function HUDCounter.Rows:eventSlash(params)
     print("/hud rowfade {opacity} (0.0-1.0, fade active row to this)")
     print("/hud rowfadewatch {opacity} (0.0-1.0 fade watch row to this)")
     print("/hud save (Save configuration variables)")
+    print("/hud reset {config} (Resets counters, or configuration")
   elseif (elements[1] == "debug") then
     if (self.Config.debug == true) then
       self.Config.debug = false
@@ -489,6 +494,12 @@ function HUDCounter.Rows:eventSlash(params)
           "Blue: " .. self.Config.rowB)
   elseif (elements[1] == "save") then
     self:ConfigSave()
+  elseif (elements[1] == "reset") then
+    if (elements[2] == "config") then
+      self.Config = self.DefaultConfig
+    else
+      self.History = {}
+    end
   else
     print("Unknown command.")
   end
