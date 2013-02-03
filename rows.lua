@@ -49,6 +49,11 @@ HUDCounter.Rows.DefaultConfig = {
 -- @todo Load in configuration from storage.
 --
 function HUDCounter.Rows:init(window, content)
+  -- Make sure everything in our watch list has a history
+  -- for the counter.
+  for id in pairs(self.Config.watch) do
+    self:UpdateHistory(id)
+  end
   -- Save the reference to window
   self.window = window
   self.content = content
@@ -85,7 +90,7 @@ end
 --
 function HUDCounter.Rows.ConfigSave()
   HUDCounterRowsConfig = HUDCounter.Rows.Config
-  HUDCounterRowsHistory = self.History
+  HUDCounterRowsHistory = HUDCounter.Rows.History
 end
 
 --
@@ -376,7 +381,7 @@ function HUDCounter.Rows:eventSlash(params)
     print("/hud rowfade {opacity} (0.0-1.0, fade active row to this)")
     print("/hud rowfadewatch {opacity} (0.0-1.0 fade watch row to this)")
     print("/hud save (Save configuration variables)")
-    print("/hud reset {config} (Resets counters, or configuration")
+    print("/hud reset {config|watch} (Resets counters, or configuration")
   elseif (elements[1] == "debug") then
     if (self.Config.debug == true) then
       self.Config.debug = false
@@ -497,6 +502,8 @@ function HUDCounter.Rows:eventSlash(params)
   elseif (elements[1] == "reset") then
     if (elements[2] == "config") then
       self.Config = self.DefaultConfig
+    elseif (elements[2] == "watch") then
+      self.Config.watch = {}
     else
       self.History = {}
     end
