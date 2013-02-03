@@ -1,6 +1,6 @@
 
-HUDCounter.Achievement = {}
-HUDCounter.Achievement.Event = {}
+HUDCounter.Rows = {}
+HUDCounter.Rows.Event = {}
 
 --
 -- Initialize achievement configuration and event handling.
@@ -9,7 +9,7 @@ HUDCounter.Achievement.Event = {}
 --   (nil)
 -- @todo Load in configuration from storage.
 --
-function HUDCounter.Achievement:init(window, content)
+function HUDCounter.Rows:init(window, content)
   self.Config = {}
   -- Enable any achievements on the HUD.
   self.Config.enableAchievement = true
@@ -67,12 +67,12 @@ function HUDCounter.Achievement:init(window, content)
   end
 
   -- Register callbacks.
-  table.insert(Command.Slash.Register("hud"), {HUDCounter.Achievement.Event.Slash, "HUDCounter", "Slash Command"})
-  table.insert(Event.Achievement.Update, {HUDCounter.Achievement.Event.Update, "HUDCounter", "Handle Achievement Update"})
-  table.insert(Event.Item.Update, {HUDCounter.Achievement.Event.ItemUpdate, "HUDCounter", "Handle Item Updates"})
-  table.insert(Event.System.Update.Begin, {HUDCounter.Achievement.Event.SystemUpdateBegin, "HUDCounter", "Handle Timer"})
-  table.insert(Event.Currency, {HUDCounter.Achievement.Event.Currency, "HUDCounter", "Handle Currency Update"})
-  table.insert(Event.Item.Slot, {HUDCounter.Achievement.Event.ItemSlot, "HUDCounter", "Handle Item Slot Updates"})
+  table.insert(Command.Slash.Register("hud"), {HUDCounter.Rows.Event.Slash, "HUDCounter", "Slash Command"})
+  table.insert(Event.Achievement.Update, {HUDCounter.Rows.Event.Update, "HUDCounter", "Handle Achievement Update"})
+  table.insert(Event.Item.Update, {HUDCounter.Rows.Event.ItemUpdate, "HUDCounter", "Handle Item Updates"})
+  table.insert(Event.System.Update.Begin, {HUDCounter.Rows.Event.SystemUpdateBegin, "HUDCounter", "Handle Timer"})
+  table.insert(Event.Currency, {HUDCounter.Rows.Event.Currency, "HUDCounter", "Handle Currency Update"})
+  table.insert(Event.Item.Slot, {HUDCounter.Rows.Event.ItemSlot, "HUDCounter", "Handle Item Slot Updates"})
 end
 
 --
@@ -83,7 +83,7 @@ end
 -- @param int index
 --   The row index to show.
 --
-function HUDCounter.Achievement:ShowRow(index)
+function HUDCounter.Rows:ShowRow(index)
   local row = self.Config.rows[index]
   -- If the new row height is greater or lesser then the old then adjust
   -- container windows.
@@ -117,7 +117,7 @@ end
 -- @param Frame window
 --   The frame to adjust and insert achievement monitor rows into.
 --
-function HUDCounter.Achievement:Redraw()
+function HUDCounter.Rows:Redraw()
   self.Config.window.borderTop:SetAlpha(self.Config.enableBorder and 1 or 0)
   self.Config.window.borderBottom:SetAlpha(self.Config.enableBorder and 1 or 0)
   self.Config.window.borderLeft:SetAlpha(self.Config.enableBorder and 1 or 0)
@@ -141,16 +141,16 @@ function HUDCounter.Achievement:Redraw()
     self.Config.rows[1] = self:DrawRow(self.Config.content, 1)
     bugFix = self.Config.rows[1].icon
     function bugFix.Event:MouseIn()
-      if (HUDCounter.Achievement:IdType(HUDCounter.Achievement.Config.rows[1].achId) == "item") then
-        Command.Tooltip(HUDCounter.Achievement.Config.rows[1].achId)
+      if (HUDCounter.Rows:IdType(HUDCounter.Rows.Config.rows[1].achId) == "item") then
+        Command.Tooltip(HUDCounter.Rows.Config.rows[1].achId)
       end
     end
     function bugFix.Event:MouseOut()
       Command.Tooltip(nil)
     end
     function bugFix.Event:LeftClick()
-      HUDCounter.Achievement:Watch(HUDCounter.Achievement.Config.rows[1].achId)
-      HUDCounter.Achievement:Redraw()
+      HUDCounter.Rows:Watch(HUDCounter.Rows.Config.rows[1].achId)
+      HUDCounter.Rows:Redraw()
     end
   end
   self:ShowRow(1)
@@ -169,10 +169,10 @@ function HUDCounter.Achievement:Redraw()
     self:Print(key)
     -- Attatch a click handler.
     bugFix = self.Config.rows[index].icon
-    bugFix.achId = HUDCounter.Achievement.Config.rows[index].achId
+    bugFix.achId = HUDCounter.Rows.Config.rows[index].achId
     function bugFix.Event:LeftClick()
-      HUDCounter.Achievement:Watch(self.achId)
-      HUDCounter.Achievement:Redraw()
+      HUDCounter.Rows:Watch(self.achId)
+      HUDCounter.Rows:Redraw()
     end
     self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
     self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.rowHeight)
@@ -189,7 +189,7 @@ end
 -- @return
 --   (table|nil) The row object if found, nil otherwise.
 --
-function HUDCounter.Achievement:FindRow(achId)
+function HUDCounter.Rows:FindRow(achId)
   local Row = nil
   for i=2, PHP.count(self.Config.rows) do
     if (self.Config.rows[i].achId == achId) then
@@ -217,7 +217,7 @@ end
 -- @return
 --   (table) The new row which has been created.
 --
-function HUDCounter.Achievement:DrawRow(parentFrame, index)
+function HUDCounter.Rows:DrawRow(parentFrame, index)
   offset = (index or 1) - 1
   offset = (offset * self.Config.rowHeight)
   local Row = {}
@@ -257,7 +257,7 @@ end
 -- @return
 --   (table) A key/value pair of currently ignored ids after the operation.
 --
-function HUDCounter.Achievement:Ignore(ach_id)
+function HUDCounter.Rows:Ignore(ach_id)
   if (ach_id ~= nil) then
     if (self.Config.ignore[ach_id] ~= nil) then
       self.Config.ignore[ach_id] = nil
@@ -278,7 +278,7 @@ end
 -- @return
 --   (table) A key/value pair of currently queued ids after the operation.
 --
-function HUDCounter.Achievement:Queue(id)
+function HUDCounter.Rows:Queue(id)
   if (id ~= nil) then
     if (self.Config.queue[id] ~= nil) then
       self.Config.queue[id] = nil
@@ -299,7 +299,7 @@ end
 -- @return
 --   (table) A key/value pair of currently watched ids after the operation.
 --
-function HUDCounter.Achievement:Watch(achId)
+function HUDCounter.Rows:Watch(achId)
   if (achId ~= nil) then
     if (self.Config.watch[achId] ~= nil) then
       self.Config.watch[achId] = nil
@@ -316,9 +316,9 @@ end
 -- @param string params
 --   Optional parameters typed after the initial slash command.
 --
--- @see HUDCounter.Achievement.Event.Slash()
+-- @see HUDCounter.Rows.Event.Slash()
 --
-function HUDCounter.Achievement:eventSlash(params)
+function HUDCounter.Rows:eventSlash(params)
   local elements = PHP.explode(" ", params)
   if (elements[1] == "") then
     print("\ngit://github.com/delphian/rift-hud-counter.git")
@@ -352,13 +352,13 @@ function HUDCounter.Achievement:eventSlash(params)
       print("Debug enabled.")
     end
   elseif (elements[1] == "ignore") then
-    achIds = HUDCounter.Achievement:Ignore(elements[2])
+    achIds = HUDCounter.Rows:Ignore(elements[2])
     dump(achIds)
   elseif (elements[1] == "watch") then
-    achIds = HUDCounter.Achievement:Watch(elements[2])
+    achIds = HUDCounter.Rows:Watch(elements[2])
     dump(achIds)
   elseif (elements[1] == "queue") then
-    achIds = HUDCounter.Achievement:Queue()
+    achIds = HUDCounter.Rows:Queue()
     PHP.print_r(achIds)
   elseif (elements[1] == "redraw") then
     print("Redrawing achievement rows...")
@@ -472,7 +472,7 @@ end
 -- @return
 --   (string) Description for achievement.
 --
-function HUDCounter.Achievement:makeDescription(achId)
+function HUDCounter.Rows:makeDescription(achId)
   local achievement = achId
   if (type(achId) ~= table) then
     achievement = AOMRift.Achievement:load(achId)
@@ -492,7 +492,7 @@ end
 --
 -- Determine the type based on an id number.
 --
-function HUDCounter.Achievement:IdType(id)
+function HUDCounter.Rows:IdType(id)
   local idType = nil
   if (type(id) == "string") then
     if (id == "coin") then
@@ -516,7 +516,7 @@ end
 --
 -- @param string|int id
 --
-function HUDCounter.Achievement:Print(id)
+function HUDCounter.Rows:Print(id)
   local object = nil
   local description = nil
   if (self:IdType(id) == "item") then
@@ -563,9 +563,9 @@ end
 --
 -- Fades an achievement row if it has been displayed long enough.
 --
--- @see HUDCounter.Achievement.Event.SystemUpdateBegin()
+-- @see HUDCounter.Rows.Event.SystemUpdateBegin()
 --
-function HUDCounter.Achievement:EventSystemUpdateBegin()
+function HUDCounter.Rows:EventSystemUpdateBegin()
   local currentTime = Inspect.Time.Real()
   for key, Row in pairs(self.Config.rows) do
     if (currentTime > (Row.time + self.Config.rowFadeDelay)) then
@@ -593,42 +593,42 @@ end
 --
 -- Callback for System.Update.Begin
 --
-function HUDCounter.Achievement.Event.SystemUpdateBegin()
-  HUDCounter.Achievement:EventSystemUpdateBegin()
+function HUDCounter.Rows.Event.SystemUpdateBegin()
+  HUDCounter.Rows:EventSystemUpdateBegin()
 end
 
 --
 -- Callback for Command.Slash.Register("hudach")
 --
-function HUDCounter.Achievement.Event.Slash(params)
-  HUDCounter.Achievement:eventSlash(params)
+function HUDCounter.Rows.Event.Slash(params)
+  HUDCounter.Rows:eventSlash(params)
 end
 
 --
--- Callback for Event.Achievement.Update
+-- Callback for Event.Rows.Update
 --
-function HUDCounter.Achievement.Event.Update(achievements)
-  if (HUDCounter.Achievement.Config.enableAchievement == false) then
+function HUDCounter.Rows.Event.Update(achievements)
+  if (HUDCounter.Rows.Config.enableAchievement == false) then
     return
   end
   if (PHP.count(achievements) <= 10) then
     for achievement_key, v in pairs(achievements) do
       local achievement = AOMRift.Achievement:load(achievement_key)
       if ((not achievement.complete) and achievement.current and (PHP.count(achievement.requirement) == 1)) then
-        HUDCounter.Achievement:Queue(achievement.id)
+        HUDCounter.Rows:Queue(achievement.id)
       end
     end
   end
 end
 
-function HUDCounter.Achievement.Event.ItemSlot(params)
-  if (HUDCounter.Achievement.Config.enableItem == false) then
+function HUDCounter.Rows.Event.ItemSlot(params)
+  if (HUDCounter.Rows.Config.enableItem == false) then
     return
   end
   if (PHP.count(params) <= 3) then
     for key, item_id in pairs(params) do
       if (type(item_id) == "string") then
-        HUDCounter.Achievement:Queue(item_id)
+        HUDCounter.Rows:Queue(item_id)
       else
         print("Item Slot id is not a string: " .. type(item_id))
       end
@@ -636,14 +636,14 @@ function HUDCounter.Achievement.Event.ItemSlot(params)
   end
 end
 
-function HUDCounter.Achievement.Event.ItemUpdate(params)
-  if (HUDCounter.Achievement.Config.enableItem == false) then
+function HUDCounter.Rows.Event.ItemUpdate(params)
+  if (HUDCounter.Rows.Config.enableItem == false) then
     return
   end
   if (PHP.count(params) <= 3) then
     for key, item_id in pairs(params) do
       if (type(item_id) == "string") then
-        HUDCounter.Achievement:Queue(item_id)
+        HUDCounter.Rows:Queue(item_id)
       else
         print("Item id is not a string: " .. type(item_id))
       end
@@ -651,13 +651,13 @@ function HUDCounter.Achievement.Event.ItemUpdate(params)
   end
 end
 
-function HUDCounter.Achievement.Event.Currency(params)
-  if (HUDCounter.Achievement.Config.enableCurrency == false) then
+function HUDCounter.Rows.Event.Currency(params)
+  if (HUDCounter.Rows.Config.enableCurrency == false) then
     return
   end
   if (PHP.count(params) <= 3) then
     for currency_id, value in pairs(params) do
-      HUDCounter.Achievement:Queue(currency_id)
+      HUDCounter.Rows:Queue(currency_id)
     end
   end
 end
