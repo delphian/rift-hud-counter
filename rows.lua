@@ -1,6 +1,44 @@
 
 HUDCounter.Rows = {}
 HUDCounter.Rows.Event = {}
+HUDCounter.Rows.DefaultConfig = {
+  -- Enable any achievements on the HUD.
+  enableAchievement = true,
+  enableCurrency = true,
+  enableItem = true,
+  -- Ignore achievements in this table. Do not display.
+  ignore = {},
+  -- Assign a special area where achievements in this table will always be
+  -- displayed.
+  watch = {},
+  -- Keep track of the current last displayed achievement.
+  current = nil,
+  -- Queue up achievements for display.
+  queue = {},
+  -- Delay in seconds before displaying the next achievement in queue.
+  delay = 5,
+  -- Height of each row
+  rowHeight = 55,
+  rowFade = 0.50,
+  rowFadeWatch = 0.25,
+  rowFadeDelay = 2.0,
+  rowAlpha = 0.50,
+  rowR = 0.75,
+  rowG = 0.75,
+  rowB = 1,
+  -- Font size for description
+  rowFontSize = 22,
+  fontColorR = 1,
+  fontColorG = 1,
+  fontColorB = 1,
+  -- Size of rows.
+  winWidth = 500,
+  winAlpha = 0,
+  -- Enable the border
+  enableBorder = false,
+  -- Debugging.
+  debug = false,
+}
 
 --
 -- Initialize achievement configuration and event handling.
@@ -10,60 +48,24 @@ HUDCounter.Rows.Event = {}
 -- @todo Load in configuration from storage.
 --
 function HUDCounter.Rows:init(window, content)
-  self.Config = {}
-  -- Enable any achievements on the HUD.
-  self.Config.enableAchievement = true
-  self.Config.enableCurrency = true
-  self.Config.enableItem = true
   -- Save the reference to window
-  self.Config.window = window
-  self.Config.content = content
-  -- Ignore achievements in this table. Do not display.
-  self.Config.ignore = {}
-  -- Assign a special area where achievements in this table will always be
-  -- displayed.
-  self.Config.watch = {}
-  -- Keep track of the current last displayed achievement.
-  self.Config.current = nil
-  -- Queue up achievements for display.
-  self.Config.queue = {}
-  -- Delay in seconds before displaying the next achievement in queue.
-  self.Config.delay = 5
+  self.window = window
+  self.content = content
+
   -- Container to be keyed by achievement id the value of which will hold a
   -- row table. The row table will contain an icon and a text description.
-  self.Config.rows = {}
-  -- Height of each row
-  self.Config.rowHeight = 55
-  self.Config.rowFade = 0.50
-  self.Config.rowFadeWatch = 0.25
-  self.Config.rowFadeDelay = 2.0
-  self.Config.rowAlpha = 0.50
-  self.Config.rowR = 0.75
-  self.Config.rowG = 0.75
-  self.Config.rowB = 1
-  -- Font size for description
-  self.Config.fontSize = 22
-  self.Config.fontColorR = 1
-  self.Config.fontColorG = 1
-  self.Config.fontColorB = 1
-  -- Size of rows.
-  self.Config.winWidth = 500
-  self.Config.winAlpha = 0
-  -- Enable the border
-  self.Config.enableBorder = false
-  -- Debugging.
-  self.Config.debug = false
+  self.rows = {}
 
   self.UI = {}
 
-  self.Config.window:SetWidth(self.Config.winWidth)
-  self.Config.content:SetWidth(self.Config.winWidth)
-  self.Config.window.background:SetAlpha(self.Config.winAlpha)
+  self.window:SetWidth(self.Config.winWidth)
+  self.content:SetWidth(self.Config.winWidth)
+  self.window.background:SetAlpha(self.Config.winAlpha)
   if (self.Config.enableBorder == false) then
-    self.Config.window.borderTop:SetAlpha(0)
-    self.Config.window.borderBottom:SetAlpha(0)
-    self.Config.window.borderLeft:SetAlpha(0)
-    self.Config.window.borderRight:SetAlpha(0)
+    self.window.borderTop:SetAlpha(0)
+    self.window.borderBottom:SetAlpha(0)
+    self.window.borderLeft:SetAlpha(0)
+    self.window.borderRight:SetAlpha(0)
   end
 
   -- Register callbacks.
@@ -76,6 +78,30 @@ function HUDCounter.Rows:init(window, content)
 end
 
 --
+-- Save all configuration variables.
+--
+-- @see table.insert(Event.Addon.SavedVariables.Load.Begin)
+--
+function HUDCounter.Rows.ConfigSave()
+  HUDCounterRowsConfig = HUDCounter.Rows.Config
+end
+
+--
+-- Load all configuration variables.
+--
+-- @see table.insert(Event.Addon.SavedVariables.Load.Begin)
+--
+function HUDCounter.Rows.ConfigLoad()
+  if (not PHP.empty(HUDCounterRowsConfig)) then
+    print("Loading saved configuration")
+    HUDCounter.Rows.Config = HUDCounterRowsConfig
+  else
+    print("Loading default configuration")
+    HUDCounter.Rows.Config = HUDCounter.Rows.DefaultConfig
+  end
+end
+
+--
 -- Display a single row.
 --
 -- Sets the row height, font and image sizes, then switches visible to true.
@@ -84,13 +110,13 @@ end
 --   The row index to show.
 --
 function HUDCounter.Rows:ShowRow(index)
-  local row = self.Config.rows[index]
+  local row = self.rows[index]
   -- If the new row height is greater or lesser then the old then adjust
   -- container windows.
   local newHeight = (self.Config.rowHeight - row.icon:GetHeight())
   if (newHeight ~= 0) then
-    self.Config.window:SetHeight(self.Config.window:GetHeight() + newHeight)
-    self.Config.content:SetHeight(self.Config.content:GetHeight() + newHeight)
+    self.window:SetHeight(self.window:GetHeight() + newHeight)
+    self.content:SetHeight(self.content:GetHeight() + newHeight)
   end
   row.Content:SetHeight(self.Config.rowHeight)
   row.Background:SetBackgroundColor(
@@ -104,7 +130,7 @@ function HUDCounter.Rows:ShowRow(index)
   -- Description field.
   row.text:SetPoint("TOPLEFT", row.Content, "TOPLEFT", row.icon:GetWidth(), 0)
   row.text:SetWordwrap(true)
-  row.text:SetFontSize(self.Config.fontSize)
+  row.text:SetFontSize(self.Config.rowFontSize)
   row.text:SetFontColor(self.Config.fontColorR, self.Config.fontColorG, self.Config.fontColorB, 1)
   -- Show windows.
   row.Content:SetVisible(true)
@@ -118,17 +144,17 @@ end
 --   The frame to adjust and insert achievement monitor rows into.
 --
 function HUDCounter.Rows:Redraw()
-  self.Config.window.borderTop:SetAlpha(self.Config.enableBorder and 1 or 0)
-  self.Config.window.borderBottom:SetAlpha(self.Config.enableBorder and 1 or 0)
-  self.Config.window.borderLeft:SetAlpha(self.Config.enableBorder and 1 or 0)
-  self.Config.window.borderRight:SetAlpha(self.Config.enableBorder and 1 or 0)
+  self.window.borderTop:SetAlpha(self.Config.enableBorder and 1 or 0)
+  self.window.borderBottom:SetAlpha(self.Config.enableBorder and 1 or 0)
+  self.window.borderLeft:SetAlpha(self.Config.enableBorder and 1 or 0)
+  self.window.borderRight:SetAlpha(self.Config.enableBorder and 1 or 0)
   -- Initially set all rows to invisible and shrink container window.
-  for key, value in ipairs(self.Config.rows) do
-    if (self.Config.rows[key].Content:GetVisible() == true) then
-      self.Config.rows[key].Content:SetVisible(false)
-      self.Config.rows[key].achId = nil
-      self.Config.window:SetHeight(self.Config.window:GetHeight() - self.Config.rowHeight)
-      self.Config.content:SetHeight(self.Config.content:GetHeight() - self.Config.rowHeight)
+  for key, value in ipairs(self.rows) do
+    if (self.rows[key].Content:GetVisible() == true) then
+      self.rows[key].Content:SetVisible(false)
+      self.rows[key].achId = nil
+      self.window:SetHeight(self.window:GetHeight() - self.Config.rowHeight)
+      self.content:SetHeight(self.content:GetHeight() - self.Config.rowHeight)
     end
   end
   -- Return right now if HUD Achievements is disabled.
@@ -137,45 +163,45 @@ function HUDCounter.Rows:Redraw()
   end
   -- Create update row or visually enable it if it already exists. Index 1 will always
   -- be used as the row to display recently triggered achievement updates.
-  if (self.Config.rows[1] == nil) then
-    self.Config.rows[1] = self:DrawRow(self.Config.content, 1)
-    bugFix = self.Config.rows[1].icon
+  if (self.rows[1] == nil) then
+    self.rows[1] = self:DrawRow(self.content, 1)
+    bugFix = self.rows[1].icon
     function bugFix.Event:MouseIn()
-      if (HUDCounter.Rows:IdType(HUDCounter.Rows.Config.rows[1].achId) == "item") then
-        Command.Tooltip(HUDCounter.Rows.Config.rows[1].achId)
+      if (HUDCounter.Rows:IdType(HUDCounter.Rows.rows[1].achId) == "item") then
+        Command.Tooltip(HUDCounter.Rows.rows[1].achId)
       end
     end
     function bugFix.Event:MouseOut()
       Command.Tooltip(nil)
     end
     function bugFix.Event:LeftClick()
-      HUDCounter.Rows:Watch(HUDCounter.Rows.Config.rows[1].achId)
+      HUDCounter.Rows:Watch(HUDCounter.Rows.rows[1].achId)
       HUDCounter.Rows:Redraw()
     end
   end
   self:ShowRow(1)
   -- Increase the containing window size for the above row.
-  self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
-  self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.rowHeight)
+  self.window:SetHeight(self.window:GetHeight() + self.Config.rowHeight)
+  self.content:SetHeight(self.content:GetHeight() + self.Config.rowHeight)
   -- Setup any rows for achievements that are being specifically watched.
   local index = 2
   for key, value in pairs(self.Config.watch) do
     -- If the row table does not exist then create it.
-    if (self.Config.rows[index] == nil) then
-      self.Config.rows[index] = self:DrawRow(self.Config.content, index)
+    if (self.rows[index] == nil) then
+      self.rows[index] = self:DrawRow(self.content, index)
     end
     self:ShowRow(index)
-    self.Config.rows[index].achId = key
+    self.rows[index].achId = key
     self:Print(key)
     -- Attatch a click handler.
-    bugFix = self.Config.rows[index].icon
-    bugFix.achId = HUDCounter.Rows.Config.rows[index].achId
+    bugFix = self.rows[index].icon
+    bugFix.achId = HUDCounter.Rows.rows[index].achId
     function bugFix.Event:LeftClick()
       HUDCounter.Rows:Watch(self.achId)
       HUDCounter.Rows:Redraw()
     end
-    self.Config.window:SetHeight(self.Config.window:GetHeight() + self.Config.rowHeight)
-    self.Config.content:SetHeight(self.Config.content:GetHeight() + self.Config.rowHeight)
+    self.window:SetHeight(self.window:GetHeight() + self.Config.rowHeight)
+    self.content:SetHeight(self.content:GetHeight() + self.Config.rowHeight)
     index = index + 1
   end
 end
@@ -191,9 +217,9 @@ end
 --
 function HUDCounter.Rows:FindRow(achId)
   local Row = nil
-  for i=2, PHP.count(self.Config.rows) do
-    if (self.Config.rows[i].achId == achId) then
-      Row = self.Config.rows[i]
+  for i=2, PHP.count(self.rows) do
+    if (self.rows[i].achId == achId) then
+      Row = self.rows[i]
       break
     end
   end
@@ -237,11 +263,11 @@ function HUDCounter.Rows:DrawRow(parentFrame, index)
   position = { left = Row.icon:GetWidth(), right = 0, top = 0, bottom = 0 }
   Row.text = AOMRift.UI:Content(Row.Content, position, {alpha=0}, "Text")
   Row.text:SetWordwrap(true)
-  Row.text:SetFontSize(self.Config.fontSize)
+  Row.text:SetFontSize(self.Config.rowFontSize)
   Row.text:SetLayer(12)
   -- Attatch to bottom of previous row.
   if (index > 1) then
-    AOMRift.UI:Attatch(Row.Content, self.Config.rows[index -1].Content, "bottom")
+    AOMRift.UI:Attatch(Row.Content, self.rows[index -1].Content, "bottom")
   end
   Row.time = Inspect.Time.Real()  
   return Row
@@ -343,6 +369,7 @@ function HUDCounter.Rows:eventSlash(params)
     print("/hud rowheight {height in pixels}")
     print("/hud rowfade {opacity} (0.0-1.0, fade active row to this)")
     print("/hud rowfadewatch {opacity} (0.0-1.0 fade watch row to this)")
+    print("/hud save (Save configuration variables)")
   elseif (elements[1] == "debug") then
     if (self.Config.debug == true) then
       self.Config.debug = false
@@ -388,7 +415,7 @@ function HUDCounter.Rows:eventSlash(params)
       print("HUD Currency enabled.")
     end
   elseif (elements[1] == "rows") then
-    PHP.print_r(self.Config.rows)
+    PHP.print_r(self.rows)
     PHP.print_r(Event)
   -- Window related commands.
   elseif (elements[1] == "winborder") then
@@ -400,21 +427,21 @@ function HUDCounter.Rows:eventSlash(params)
     self:Redraw()
   elseif (elements[1] == "winwidth") then
     if (elements[2] ~= nil) then
-      self.Config.window:SetWidth(tonumber(elements[2]))
-      self.Config.content:SetWidth(tonumber(elements[2]))
+      self.window:SetWidth(tonumber(elements[2]))
+      self.content:SetWidth(tonumber(elements[2]))
     end
     print(self.Config.window:GetWidth())
   elseif (elements[1] == "winopacity") then
     if (elements[2] ~= nil) then
-      self.Config.window.background:SetAlpha(tonumber(elements[2]))
+      self.window.background:SetAlpha(tonumber(elements[2]))
     end
-    print(self.Config.window.background:GetAlpha())
+    print(self.window.background:GetAlpha())
   -- Row related commands.
   elseif (elements[1] == "rowfontsize") then
     if (elements[2] ~= nil) then
-      self.Config.fontSize = tonumber(elements[2])
+      self.Config.rowFontSize = tonumber(elements[2])
     end
-    print(self.Config.fontSize)
+    print(self.Config.rowFontSize)
     self:Redraw()
   elseif (elements[1] == "rowheight") then
     if (elements[2] ~= nil) then
@@ -458,6 +485,8 @@ function HUDCounter.Rows:eventSlash(params)
     print("Red: " .. self.Config.rowR .. ", " ..
           "Green: " .. self.Config.rowG .. ", " ..
           "Blue: " .. self.Config.rowB)
+  elseif (elements[1] == "save") then
+    self:ConfigSave()
   else
     print("Unknown command.")
   end
@@ -543,7 +572,7 @@ function HUDCounter.Rows:Print(id)
   if (object ~= nil) then
     local row = self:FindRow(id)
     if (row == nil) then
-      row = self.Config.rows[1]
+      row = self.rows[1]
     end
     row.time = Inspect.Time.Real()
     row.Content:SetAlpha(1)
@@ -567,7 +596,7 @@ end
 --
 function HUDCounter.Rows:EventSystemUpdateBegin()
   local currentTime = Inspect.Time.Real()
-  for key, Row in pairs(self.Config.rows) do
+  for key, Row in pairs(self.rows) do
     if (currentTime > (Row.time + self.Config.rowFadeDelay)) then
       local currentAlpha = Row.Content:GetAlpha()
       if (key == 1 and currentAlpha > self.Config.rowFade) then
@@ -661,3 +690,6 @@ function HUDCounter.Rows.Event.Currency(params)
     end
   end
 end
+
+table.insert(Event.Addon.SavedVariables.Save.Begin, {HUDCounter.Rows.ConfigSave, "HUDCounter", "Save variables"})
+table.insert(Event.Addon.SavedVariables.Load.End, {HUDCounter.Rows.ConfigLoad, "HUDCounter", "Load variables"})

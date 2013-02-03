@@ -20,6 +20,11 @@ Dependencies = {
   luaRiftLibrary = {"required", "before"},
 }
 
+SavedVariables = {
+  HUDCounterRowsConfig = "account",
+  HUDCounterRowsConfigRowFontSize = "account",
+}
+
 RunOnStartup = {
   "main.lua",
   "rows.lua",
