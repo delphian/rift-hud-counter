@@ -617,8 +617,14 @@ function HUDCounter.Rows:Print(id)
   elseif ((self:IdType(id) == "currency") or (self:IdType(id) == "coin")) then
     object = AOMRift.Currency:load(id)
     if (object ~= nil) then
-      description = object.name .. ": " .. object.value .. " ("
-        .. (object.value - self.History[id].value) .. ")"
+      if (self.History[id].value ~= nil) then
+        description = object.name .. ": " .. object.value .. " ("
+          .. (object.value - self.History[id].value) .. ")"
+      else
+        print("Unable to print currency. Currency:")
+        PHP.print_r(object)
+        PHP.print_r(self.History[id])
+      end
     end
   end
   if (self.Config.debug == true) then
