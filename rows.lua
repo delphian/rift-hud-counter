@@ -55,6 +55,7 @@ function HUDCounter.Rows:init(window, content)
   -- Save the reference to window
   self.window = window
   self.content = content
+  self.currencyReady = false
 
   -- Container to be keyed by achievement id the value of which will hold a
   -- row table. The row table will contain an icon and a text description.
@@ -77,7 +78,6 @@ function HUDCounter.Rows:init(window, content)
   table.insert(Event.Achievement.Update, {HUDCounter.Rows.Event.Update, "HUDCounter", "Handle Achievement Update"})
   table.insert(Event.Item.Update, {HUDCounter.Rows.Event.ItemUpdate, "HUDCounter", "Handle Item Updates"})
   table.insert(Event.System.Update.Begin, {HUDCounter.Rows.Event.SystemUpdateBegin, "HUDCounter", "Handle Timer"})
-  table.insert(Event.Currency, {HUDCounter.Rows.Event.Currency, "HUDCounter", "Handle Currency Update"})
   table.insert(Event.Item.Slot, {HUDCounter.Rows.Event.ItemSlot, "HUDCounter", "Handle Item Slot Updates"})
 end
 
@@ -749,8 +749,14 @@ function HUDCounter.Rows.Event.Currency(params)
     for currency_id, value in pairs(params) do
       HUDCounter.Rows:Queue(currency_id)
     end
+  else
+    -- We are using this callback as evidence that the currencys
+    -- are now ready to be inspected. Display our rows for the
+    -- first time.
+    HUDCounter.Rows:Redraw()
   end
 end
 
 table.insert(Event.Addon.SavedVariables.Save.Begin, {HUDCounter.Rows.ConfigSave, "HUDCounter", "Save variables"})
 table.insert(Event.Addon.SavedVariables.Load.End, {HUDCounter.Rows.ConfigLoad, "HUDCounter", "Load variables"})
+table.insert(Event.Currency, {HUDCounter.Rows.Event.Currency, "HUDCounter", "Handle Currency Update"})
