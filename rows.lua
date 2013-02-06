@@ -104,11 +104,8 @@ function HUDCounter.Rows.ConfigLoad()
     print("Loading default configuration")
     HUDCounter.Rows.Config = HUDCounter.Rows.DefaultConfig
   end
-  if (not PHP.empty(HUDCounterRowsHistory)) then
-    for id, value in ipairs(HUDCounterRowsHistory) do
-      HUDCounter.Rows:UpdateHistory(id)
-    end
-  end
+  HUDCounter.Rows.History = {}
+  HUDCounter.Rows:UpdateHistoryWatched()
 end
 
 --

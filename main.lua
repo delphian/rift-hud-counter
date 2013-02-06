@@ -127,7 +127,6 @@ function HUDCounter:init()
   -- Setup achievement rows inside window.
   self.Rows:init(self.UI.window, self.UI.window.achievement)
 
-  --HUDCounter.Rows:Redraw()
   -- Register callbacks.
   table.insert(Event.Experience.Accumulated, {self.Event.Experience, "HUDCounter", "Handle Experience Change"})
   table.insert(Event.Attunement.Progress.Accumulated, {self.Event.Attunement, "HUDCounter", "Handle Attunement Change"})
